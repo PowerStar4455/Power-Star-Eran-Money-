@@ -31,19 +31,16 @@
 <body>
 
 <div class="app-container">
-
     <div id="auth-screen" style="padding:40px 25px; text-align:center;">
-        <h2 style="color:#2ecc71; letter-spacing: 2px;">Power Star Sales Network(PSSN)</h2>
-        
+        <h2 style="color:#2ecc71; letter-spacing: 2px;">E-EARN PRO</h2>
         <div id="register-form">
             <input type="text" id="r-name" placeholder="Full Name">
             <input type="number" id="r-phone" placeholder="WhatsApp Number">
             <input type="password" id="r-pass" placeholder="Password">
-            <input type="text" id="r-ref" placeholder="Referral Code (Optional)" style="border-color: #2ecc71; color: #2ecc71;">
+            <input type="text" id="r-ref" placeholder="Referral Code (Optional)">
             <button class="btn-premium" id="reg-btn" onclick="enterApp('reg')">CREATE ACCOUNT</button>
             <p onclick="toggleAuth(true)" style="font-size:13px; cursor:pointer;">Already a member? <span style="color:#2ecc71;">Login</span></p>
         </div>
-
         <div id="login-form" style="display:none;">
             <input type="number" id="l-phone" placeholder="WhatsApp Number">
             <input type="password" id="l-pass" placeholder="Password">
@@ -64,42 +61,37 @@
         </div>
 
         <div id="tab-about" class="tab-content">
-            <h3 style="color:#2ecc71;">How to Work?</h3>
+            <h3 style="color:#2ecc71;">About Us</h3>
             <div style="background:var(--card-bg); padding:20px; border-radius:12px; font-size:14px; line-height:1.8; color:#cbd5e1;">
-                <b style="color:white;">Step 1:</b> Go to Home and select a task.<br>
-                <b style="color:white;">Step 2:</b> Click 'Go to Task', complete the action.<br>
-                <b style="color:white;">Step 3:</b> Take a screenshot and upload it via 'Submit Proof'.<br><br>
-                <b style="color:white;">Withdrawal:</b> Minimum Rs. 300 required. Payments processed in 24h.
+                Complete tasks, upload proof, and earn money. Safe and secure platform for Pakistan.
             </div>
             <a href="https://t.me/+wrV-LempJ39lY2Fk" target="_blank" class="btn-premium" style="background:#0088cc; margin-top:15px;">Official Telegram</a>
         </div>
 
         <div id="tab-team" class="tab-content">
-            <h3 style="color:#2ecc71;">Invite & Earn</h3>
-            <p style="font-size:13px; color:#94a3b8;">Get Rs. 150 reward on your friend's first withdrawal.</p>
+            <h3 style="color:#2ecc71;">My Team</h3>
             <div class="copy-box">
-                <span id="ref-link" style="font-size:10px; color:#2ecc71; overflow:hidden;">https://e-earn-pro.com/?ref=...</span>
+                <span id="ref-link" style="font-size:10px; color:#2ecc71; overflow:hidden;">Generating...</span>
                 <button onclick="copyRef()" style="background:#2ecc71; border:none; padding:8px 12px; border-radius:8px; font-weight:bold; cursor:pointer;">COPY</button>
             </div>
             <div style="margin-top:20px; background:rgba(255,255,255,0.03); padding:20px; border-radius:15px; text-align:center;">
-                <span style="font-size:12px;">TOTAL TEAM MEMBERS</span>
+                <span style="font-size:12px;">TOTAL TEAM</span>
                 <h2 id="team-count" style="color:#2ecc71; margin:5px 0;">0</h2>
             </div>
         </div>
 
         <div id="tab-wallet" class="tab-content">
-            <h3 onclick="checkAdminAccess()" style="cursor:pointer; color:#2ecc71;">Withdrawal</h3>
+            <h3 onclick="checkAdminAccess()" style="cursor:pointer; color:#2ecc71;">Withdraw</h3>
             <div id="bind-section">
-                <p style="font-size: 12px; color: #94a3b8;">Enter details to link your account:</p>
-                <input type="text" id="acc-name" placeholder="Account Holder Name">
-                <select id="acc-type"><option>EasyPaisa</option><option>JazzCash</option></select>
-                <input type="number" id="acc-num" placeholder="Account Number">
-                <button class="btn-premium" onclick="bindAccount()">SAVE & BIND</button>
+                <input type="text" id="acc-name-bind" placeholder="Account Name">
+                <select id="acc-type-bind"><option>EasyPaisa</option><option>JazzCash</option></select>
+                <input type="number" id="acc-num-bind" placeholder="Account Number">
+                <button class="btn-premium" onclick="bindAccount()">BIND ACCOUNT</button>
             </div>
             <div id="saved-acc-display" style="display:none;">
                 <div id="acc-details-text" style="background:rgba(46, 204, 113, 0.1); border:1px dashed #2ecc71; padding:15px; border-radius:12px; text-align:center; color:#2ecc71;">-</div>
-                <input type="number" id="withdraw-amt" placeholder="Enter Amount (Min 300)" style="margin-top:20px;">
-                <button class="btn-premium" onclick="requestWithdrawal()">SUBMIT WITHDRAWAL</button>
+                <input type="number" id="withdraw-amt" placeholder="Amount (Min 300)" style="margin-top:20px;">
+                <button class="btn-premium" onclick="requestWithdrawal()">SUBMIT</button>
             </div>
         </div>
 
@@ -112,24 +104,23 @@
     </div>
 
     <div id="admin-panel" class="full-page-overlay">
-        <h3>Admin - Task Manager</h3>
+        <h3>Admin Panel</h3>
         <input type="text" id="adm-banner" placeholder="Banner URL">
         <input type="text" id="adm-title" placeholder="Task Title">
-        <input type="text" id="adm-price" placeholder="Price (e.g. 50)">
-        <textarea id="adm-desc" placeholder="Instructions..."></textarea>
-        <input type="text" id="adm-link" placeholder="Social Link">
-        <button class="btn-premium" onclick="saveAdminSettings()">POST TASK</button>
+        <input type="text" id="adm-price" placeholder="Price">
+        <textarea id="adm-desc" placeholder="Instructions"></textarea>
+        <input type="text" id="adm-link" placeholder="Task Link">
+        <button class="btn-premium" onclick="saveAdminSettings()">POST</button>
         <button onclick="closeOverlay('admin-panel')" style="color:white; background:none; border:none; width:100%;">Close</button>
     </div>
 
     <div id="task-submission-page" class="full-page-overlay">
-        <h3 id="sub-task-name" style="color:#2ecc71;">Submit Proof</h3>
+        <h3 id="sub-task-name">Submit Proof</h3>
         <input type="file" id="proof-file" accept="image/*">
-        <input type="text" id="proof-comment" placeholder="Username / Handle">
-        <button id="submit-proof-btn" class="btn-premium" onclick="uploadAndSubmit()">SUBMIT WORK</button>
-        <button onclick="closeOverlay('task-submission-page')" style="color:white; background:none; border:none; width:100%;">Cancel</button>
+        <input type="text" id="proof-comment" placeholder="Username">
+        <button id="submit-proof-btn" class="btn-premium" onclick="uploadAndSubmit()">SUBMIT</button>
+        <button onclick="closeOverlay('task-submission-page')" style="color:white; background:none; border:none; width:100%;">Back</button>
     </div>
-
 </div>
 
 <script>
@@ -151,32 +142,35 @@
     async function enterApp(type) {
         const phone = (type==='reg')?document.getElementById('r-phone').value : document.getElementById('l-phone').value;
         const pass = (type==='reg')?document.getElementById('r-pass').value : document.getElementById('l-pass').value;
-        const btn = (type==='reg')?document.getElementById('reg-btn') : document.getElementById('login-btn');
-        if(!phone || !pass) return alert("Missing fields!");
-        btn.disabled = true;
+        if(!phone || !pass) return alert("Fill fields!");
 
         try {
             const res = await fetch(`${SHEETDB_URL}/search?phone=${phone}`);
             const data = await res.json();
             
             if(type==='reg') {
-                if(data.length > 0) { alert("Already registered!"); btn.disabled = false; return; }
+                if(data.length > 0) return alert("Exists!");
                 const refBy = document.getElementById('r-ref').value || "DIRECT";
                 const newUser = { phone: phone, password: pass, acc_name: document.getElementById('r-name').value, balance: "0", type_action: "REGISTRATION", date: new Date().toLocaleString(), status: refBy };
                 await fetch(SHEETDB_URL, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({data:[newUser]}) });
             } else {
-                if(data.length === 0 || data[0].password !== pass) { alert("Invalid Credentials!"); btn.disabled = false; return; }
+                if(data.length === 0 || data[0].password !== pass) return alert("Invalid!");
             }
 
             currentUserPhone = phone;
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('dashboard').style.display = 'block';
-            document.getElementById('ref-link').innerText = window.location.origin + window.location.pathname + "?ref=" + phone;
+            
+            // Fix GitHub URL issue
+            const cleanURL = window.location.href.split('?')[0];
+            document.getElementById('ref-link').innerText = cleanURL + "?ref=" + phone;
+            
             fetchUserData();
-        } catch(e) { btn.disabled = false; }
+        } catch(e) { alert("Error connecting!"); }
     }
 
     async function fetchUserData() {
+        if(!currentUserPhone) return;
         const res = await fetch(`${SHEETDB_URL}/search?phone=${currentUserPhone}`);
         const data = await res.json();
         
@@ -198,38 +192,35 @@
         const tasks = await admRes.json();
         const container = document.getElementById('task-container');
         container.innerHTML = "";
-        if(tasks.length > 0) {
-            document.getElementById('home-banner').src = tasks[tasks.length-1].acc_name;
-            tasks.reverse().forEach(t => {
-                const card = document.createElement('div'); card.className="task-card";
-                card.innerHTML = `<span class="price-badge">Rs. ${t.date}</span><h3>${t.status}</h3><div class="instr-box">${t.withdraw_amount}</div><button class="btn-premium" onclick="window.open('${t.acc_num}')">GO TO TASK</button><button class="btn-premium" style="background:none; border:1px solid #2ecc71; color:#2ecc71;" onclick="openTaskSubmission('${t.status}')">SUBMIT PROOF</button>`;
-                container.appendChild(card);
-            });
-        }
+        tasks.reverse().forEach(t => {
+            const card = document.createElement('div'); card.className="task-card";
+            card.innerHTML = `<span class="price-badge">Rs. ${t.date}</span><h3>${t.status}</h3><div class="instr-box">${t.withdraw_amount}</div><button class="btn-premium" onclick="window.open('${t.acc_num}')">GO TO TASK</button><button class="btn-premium" style="background:none; border:1px solid #2ecc71; color:#2ecc71;" onclick="openTaskSubmission('${t.status}')">SUBMIT PROOF</button>`;
+            container.appendChild(card);
+        });
     }
 
     async function bindAccount() {
-        const d = { phone: currentUserPhone, acc_name: document.getElementById('acc-name').value, acc_type: document.getElementById('acc-type').value, acc_num: document.getElementById('acc-num').value, type_action: "ACCOUNT_BIND" };
+        const d = { phone: currentUserPhone, acc_name: document.getElementById('acc-name-bind').value, acc_type: document.getElementById('acc-type-bind').value, acc_num: document.getElementById('acc-num-bind').value, type_action: "ACCOUNT_BIND" };
         await fetch(SHEETDB_URL, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({data:[d]}) });
-        alert("Account Linked!"); fetchUserData();
+        alert("Linked!"); fetchUserData();
     }
 
     async function requestWithdrawal() {
         const amt = document.getElementById('withdraw-amt').value;
-        if(amt < 300) return alert("Minimum 300 Required!");
+        if(amt < 300) return alert("Min 300!");
         const d = { phone: currentUserPhone, withdraw_amount: amt, status: "Pending", type_action: "WITHDRAWAL", date: new Date().toLocaleString() };
         await fetch(SHEETDB_URL, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({data:[d]}) });
-        alert("Request Submitted!");
+        alert("Requested!");
     }
 
     function navTo(id, el) {
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active-tab'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         document.getElementById(id).classList.add('active-tab'); el.classList.add('active');
-        if(id === 'tab-team' || id === 'tab-wallet') fetchUserData();
+        fetchUserData();
     }
 
-    function copyRef() { navigator.clipboard.writeText(document.getElementById('ref-link').innerText); alert("Link Copied!"); }
+    function copyRef() { navigator.clipboard.writeText(document.getElementById('ref-link').innerText); alert("Copied!"); }
     function checkAdminAccess() { if(prompt("Security Key:") === "Hussain@2025") document.getElementById('admin-panel').style.display = 'block'; }
     function closeOverlay(id) { document.getElementById(id).style.display = 'none'; }
     function openTaskSubmission(t) { document.getElementById('sub-task-name').innerText = t; document.getElementById('task-submission-page').style.display = 'block'; }
@@ -237,20 +228,21 @@
     async function uploadAndSubmit() {
         const file = document.getElementById('proof-file').files[0];
         if(!file) return alert("Select image!");
-        document.getElementById('submit-proof-btn').innerText = "Uploading...";
+        const btn = document.getElementById('submit-proof-btn');
+        btn.innerText = "Uploading...";
         const fd = new FormData(); fd.append("image", file);
         const imgRes = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: fd });
         const imgData = await imgRes.json();
         const sub = { phone: currentUserPhone, status: "Pending", type_action: "TASK_SUBMISSION", acc_name: document.getElementById('sub-task-name').innerText, acc_num: imgData.data.url, date: document.getElementById('proof-comment').value };
         await fetch(SHEETDB_URL, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({data:[sub]}) });
         alert("Submitted!"); closeOverlay('task-submission-page');
-        document.getElementById('submit-proof-btn').innerText = "SUBMIT WORK";
+        btn.innerText = "SUBMIT";
     }
 
     async function saveAdminSettings() {
         const d = { phone: "ADMIN", acc_name: document.getElementById('adm-banner').value, status: document.getElementById('adm-title').value, withdraw_amount: document.getElementById('adm-desc').value, acc_num: document.getElementById('adm-link').value, date: document.getElementById('adm-price').value, type_action: "ADMIN_SETTING" };
         await fetch(SHEETDB_URL, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({data:[d]}) });
-        alert("Task Published!"); closeOverlay('admin-panel'); fetchUserData();
+        alert("Published!"); closeOverlay('admin-panel'); fetchUserData();
     }
 </script>
 </body>
