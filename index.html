@@ -6,76 +6,63 @@
     <title>Power Star - Official</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { 
-            --gold-grad: linear-gradient(135deg, #ffd700 0%, #b8860b 100%); 
-            --dark-bg: #0f172a; 
-            --card-bg: rgba(255, 255, 255, 0.05); 
-            --accent-gold: #f1c40f;
-        }
-        * { box-sizing: border-box; font-family: 'Poppins', sans-serif; transition: 0.3s; }
-        body { margin: 0; background: var(--dark-bg); color: white; display: flex; justify-content: center; overflow-x: hidden; }
-        .app-container { width: 100%; max-width: 450px; min-height: 100vh; background: var(--dark-bg); position: relative; border: 1px solid rgba(255,255,255,0.1); }
-        input, select { width: 100%; padding: 14px; background: var(--card-bg); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: white; outline: none; margin-bottom: 12px; }
-        .btn-premium { width: 100%; padding: 16px; background: var(--gold-grad); color: black; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        #auth-screen, #dashboard, #adm-layer, #ss-modal { display: none; }
-        .tab-content { display: none; padding: 20px; padding-bottom: 100px; animation: fadeIn 0.4s; }
+        :root { --gold: #f1c40f; --dark: #0f172a; --card: rgba(255,255,255,0.05); }
+        body { margin: 0; background: var(--dark); color: white; font-family: 'Poppins', sans-serif; }
+        .app-container { width: 100%; max-width: 450px; min-height: 100vh; margin: auto; border: 1px solid rgba(255,255,255,0.1); position: relative; }
+        input { width: 100%; padding: 12px; margin-bottom: 10px; background: var(--card); border: 1px solid #334155; border-radius: 8px; color: white; }
+        .btn-premium { width: 100%; padding: 15px; background: linear-gradient(135deg, #ffd700, #b8860b); border: none; border-radius: 10px; font-weight: bold; cursor: pointer; color: black; }
+        .screen { display: none; padding: 20px; }
+        .active-screen { display: block; }
+        .tab-content { display: none; padding-bottom: 80px; }
         .active-tab { display: block; }
-        .task-card { background: var(--card-bg); border-radius: 15px; padding: 15px; margin-bottom: 15px; border-left: 5px solid var(--accent-gold); }
-        .task-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-        .task-price { background: var(--accent-gold); color: black; font-weight: bold; padding: 4px 10px; border-radius: 8px; font-size: 12px; }
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; max-width: 450px; height: 75px; background: rgba(15, 23, 42, 0.98); display: flex; border-top: 1px solid rgba(255,215,0,0.1); z-index: 1000; }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; color: #94a3b8; cursor: pointer; text-decoration: none; }
-        .nav-item.active { color: var(--accent-gold); }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; max-width: 450px; background: #1e293b; display: flex; height: 70px; border-top: 1px solid gold; }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; cursor: pointer; color: #94a3b8; }
+        .nav-item.active { color: gold; }
+        .task-card { background: var(--card); padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 4px solid gold; display: flex; justify-content: space-between; }
     </style>
 </head>
 <body>
 
 <div class="app-container">
-    <div id="intro-screen" style="padding: 30px 20px;">
-        <div style="text-align:center; font-size:60px;">⭐</div>
-        <h1 style="color:var(--accent-gold); text-align:center;">POWER STAR</h1>
-        <p style="text-align:center; opacity:0.8;">Brighter Future, Better Earnings</p>
-        <button class="btn-premium" onclick="showSection('auth-screen')">GET STARTED NOW 🚀</button>
+    <div id="intro-screen" class="screen active-screen" style="text-align:center; padding-top:100px;">
+        <h1 style="color:gold;">POWER STAR ⭐</h1>
+        <p>Brighter Future, Better Earnings</p>
+        <button class="btn-premium" onclick="showSection('auth-screen')">GET STARTED</button>
     </div>
 
-    <div id="auth-screen" style="padding:40px 25px;">
+    <div id="auth-screen" class="screen">
         <div id="register-form">
-            <h2 style="text-align:center;">Create Account</h2>
+            <h2>Register</h2>
             <input type="text" id="reg-name" placeholder="Full Name">
             <input type="number" id="reg-num" placeholder="WhatsApp Number">
             <input type="password" id="reg-pass" placeholder="Password">
-            <input type="text" id="reg-ref" placeholder="Referral Code (Optional)">
-            <button class="btn-premium" onclick="handleRegister()">Sign Up</button>
-            <p style="text-align:center;" onclick="toggleAuth(true)">Already a member? <span style="color:gold;">Login</span></p>
+            <input type="text" id="reg-ref" placeholder="Referral Number (Optional)">
+            <button class="btn-premium" onclick="handleRegister()">Register Now</button>
+            <p onclick="toggleAuth(true)" style="text-align:center; font-size:12px;">Login here</p>
         </div>
         <div id="login-form" style="display:none;">
-            <h2 style="text-align:center;">Welcome Back</h2>
+            <h2>Login</h2>
             <input type="number" id="login-num" placeholder="Number">
             <input type="password" id="login-pass" placeholder="Password">
-            <button class="btn-premium" onclick="handleLogin()">Login Now</button>
-            <p style="text-align:center;" onclick="toggleAuth(false)">New here? <span style="color:gold;">Register</span></p>
+            <button class="btn-premium" onclick="handleLogin()">Login</button>
+            <p onclick="toggleAuth(false)" style="text-align:center; font-size:12px;">Register here</p>
         </div>
     </div>
 
-    <div id="dashboard">
-        <div style="background:var(--card-bg); padding:30px; text-align:center; border-bottom:1px solid gold;">
-            <span style="font-size:12px; opacity:0.6;">CURRENT BALANCE</span>
-            <h1 id="main-bal" style="color:var(--accent-gold); margin:5px 0;">Rs. 0.00</h1>
+    <div id="dashboard" class="screen">
+        <div style="background:var(--card); padding:20px; text-align:center; border-radius:15px; margin-bottom:20px;">
+            <p style="margin:0; font-size:12px; opacity:0.7;">BALANCE</p>
+            <h2 id="main-bal" style="color:gold; margin:5px 0;">Rs. 0.00</h2>
         </div>
 
         <div id="tab-home" class="tab-content active-tab">
-            <h3>Available Tasks</h3>
-            <div id="task-container"></div>
+            <div id="task-container">Loading tasks...</div>
         </div>
 
         <div id="tab-team" class="tab-content">
-            <h3>My Team</h3>
-            <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:15px; border:1px dashed gold; display:flex; justify-content:space-between; align-items:center;">
-                <span id="my-ref-code" style="font-size:12px;">REF: LOADING...</span>
-                <button onclick="copyRef()" style="background:gold; border:none; padding:5px 15px; border-radius:5px; font-weight:bold;">COPY</button>
-            </div>
-            <div id="team-list" style="margin-top:20px;"></div>
+            <p id="my-ref-code" style="font-size:11px; background:#1e293b; padding:10px; border-radius:5px; word-break: break-all;"></p>
+            <button class="btn-premium" style="padding:10px; margin-bottom:20px;" onclick="copyRef()">COPY LINK</button>
+            <div id="team-list"></div>
         </div>
 
         <nav class="bottom-nav">
@@ -91,8 +78,8 @@
     const DEVICE_ID = navigator.userAgent + screen.width;
 
     function showSection(id) {
-        ['intro-screen','auth-screen','dashboard'].forEach(s => document.getElementById(s).style.display='none');
-        document.getElementById(id).style.display='block';
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen'));
+        document.getElementById(id).classList.add('active-screen');
     }
 
     function toggleAuth(isLogin) {
@@ -105,13 +92,14 @@
         const num = document.getElementById('reg-num').value;
         const pass = document.getElementById('reg-pass').value;
         const ref = document.getElementById('reg-ref').value;
-        if(!name || !num || !pass) return alert("Fill all details!");
+        if(!name || !num || !pass) return alert("Fill all fields!");
 
-        const user = { name, number: num, password: pass, "reg-ref": ref || "none", deviceId: DEVICE_ID, balance: "0", status: "active" };
-        await fetch(USER_API, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({data:[user]}) });
-        localStorage.setItem('ps_user', JSON.stringify(user));
-        showSection('dashboard');
-        loadTasks();
+        const user = { name, number: num, password: pass, "reg-ref": ref || "none", deviceId: DEVICE_ID, balance: "0" };
+        try {
+            await fetch(USER_API, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({data:[user]}) });
+            localStorage.setItem('ps_user', JSON.stringify(user));
+            location.reload();
+        } catch(e) { alert("Check Connection"); }
     }
 
     async function handleLogin() {
@@ -119,66 +107,62 @@
         const pass = document.getElementById('login-pass').value;
         const res = await fetch(`${USER_API}/search?number=${num}&password=${pass}`);
         const data = await res.json();
-        if(data.length > 0) {
+        if(data && data.length > 0) {
             localStorage.setItem('ps_user', JSON.stringify(data[0]));
-            showSection('dashboard');
-            loadTasks();
-        } else { alert("Wrong details!"); }
+            location.reload();
+        } else { alert("Invalid login!"); }
     }
 
     async function loadTasks() {
-        const res = await fetch(TASK_API);
-        const tasks = await res.json();
         const container = document.getElementById('task-container');
-        if(!tasks || tasks.length === 0 || !tasks[0].Discurption) {
-            container.innerHTML = "<p style='text-align:center; opacity:0.5;'>No tasks available.</p>";
-            return;
-        }
-        container.innerHTML = "";
-        tasks.forEach(t => {
-            container.innerHTML += `<div class="task-card"><div class="task-header"><div>${t.Discurption}</div><div class="task-price">Rs.${t.Amount}</div></div></div>`;
-        });
+        try {
+            const res = await fetch(TASK_API);
+            const tasks = await res.json();
+            if(!tasks || tasks.length === 0 || !tasks[0].Discurption) {
+                container.innerHTML = "No tasks yet.";
+                return;
+            }
+            container.innerHTML = "";
+            tasks.forEach(t => {
+                container.innerHTML += `<div class="task-card"><span>${t.Discurption}</span><b style="color:gold;">Rs.${t.Amount}</b></div>`;
+            });
+        } catch(e) { container.innerHTML = "Error loading tasks."; }
     }
 
     async function loadTeamData() {
         const user = JSON.parse(localStorage.getItem('ps_user'));
+        const teamList = document.getElementById('team-list');
         const res = await fetch(`${USER_API}/search?reg-ref=${user.number}`);
         const members = await res.json();
-        const teamList = document.getElementById('team-list');
-        if(members.length === 0) { teamList.innerHTML = "No members yet."; return; }
-        let html = '<table style="width:100%; border-collapse:collapse;"><tr><th>Name</th><th>Status</th></tr>';
-        members.forEach(m => { html += `<tr><td>${m.name}</td><td>Active</td></tr>`; });
-        teamList.innerHTML = html + '</table>';
-    }
-
-    function generateRefLink() {
-        const user = JSON.parse(localStorage.getItem('ps_user'));
-        if(user) {
-            const link = window.location.href.split('?')[0] + "?ref=" + user.number;
-            document.getElementById('my-ref-code').innerText = link;
-            window.currentRefLink = link;
-        }
-    }
-
-    function copyRef() {
-        navigator.clipboard.writeText(window.currentRefLink);
-        alert("Copied!");
+        if(!members || members.length === 0) { teamList.innerHTML = "No team yet."; return; }
+        let html = "<b>Your Team:</b><br>";
+        members.forEach(m => { html += `<div style='padding:5px; border-bottom:1px solid #334155;'>${m.name}</div>`; });
+        teamList.innerHTML = html;
     }
 
     function navTo(tabId, el) {
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active-tab'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         document.getElementById(tabId).classList.add('active-tab');
+        el.classList.add('active');
         if(tabId === 'tab-team') loadTeamData();
+    }
+
+    function copyRef() {
+        const link = document.getElementById('my-ref-code').innerText;
+        navigator.clipboard.writeText(link);
+        alert("Link Copied!");
     }
 
     window.onload = () => {
         const saved = localStorage.getItem('ps_user');
         if(saved) {
+            const user = JSON.parse(saved);
             showSection('dashboard');
+            document.getElementById('main-bal').innerText = "Rs. " + (user.balance || "0.00");
+            const refLink = window.location.origin + window.location.pathname + "?ref=" + user.number;
+            document.getElementById('my-ref-code').innerText = refLink;
             loadTasks();
-            generateRefLink();
-        } else {
-            showSection('intro-screen');
         }
     };
 </script>
