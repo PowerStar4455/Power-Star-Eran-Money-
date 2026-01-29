@@ -1,170 +1,158 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Power Star - Official</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600;700&display=swap" rel="stylesheet">
+    <title>Power Star - Premium Intro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #f1c40f; --dark: #0f172a; --card: rgba(255,255,255,0.05); }
-        body { margin: 0; background: var(--dark); color: white; font-family: 'Poppins', sans-serif; }
-        .app-container { width: 100%; max-width: 450px; min-height: 100vh; margin: auto; border: 1px solid rgba(255,255,255,0.1); position: relative; }
-        input { width: 100%; padding: 12px; margin-bottom: 10px; background: var(--card); border: 1px solid #334155; border-radius: 8px; color: white; }
-        .btn-premium { width: 100%; padding: 15px; background: linear-gradient(135deg, #ffd700, #b8860b); border: none; border-radius: 10px; font-weight: bold; cursor: pointer; color: black; }
-        .screen { display: none; padding: 20px; }
-        .active-screen { display: block; }
-        .tab-content { display: none; padding-bottom: 80px; }
-        .active-tab { display: block; }
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; max-width: 450px; background: #1e293b; display: flex; height: 70px; border-top: 1px solid gold; }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; cursor: pointer; color: #94a3b8; }
-        .nav-item.active { color: gold; }
-        .task-card { background: var(--card); padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 4px solid gold; display: flex; justify-content: space-between; }
+        :root {
+            --gold-grad: linear-gradient(135deg, #f1c40f 0%, #d4ac0d 100%);
+            --dark-bg: #0f172a;
+            --glass-bg: rgba(255, 255, 255, 0.07);
+            --accent-gold: #f1c40f;
+        }
+
+        body {
+            margin: 0;
+            background: var(--dark-bg);
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 420px;
+            padding: 20px;
+        }
+
+        /* Introduction Box */
+        .intro-box {
+            background: var(--glass-bg);
+            border: 1px solid rgba(241, 196, 15, 0.2);
+            border-radius: 25px;
+            padding: 30px 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+        }
+
+        .star-logo {
+            font-size: 50px;
+            margin-bottom: 10px;
+            display: inline-block;
+            filter: drop-shadow(0 0 10px var(--accent-gold));
+        }
+
+        .brand-name {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--accent-gold);
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        .intro-text {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #cbd5e1;
+            margin-bottom: 25px;
+        }
+
+        /* Social Icons Grid */
+        .platform-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .platform-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 10px;
+            font-size: 11px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: 0.3s;
+        }
+
+        .platform-item:hover {
+            border-color: var(--accent-gold);
+            transform: translateY(-3px);
+        }
+
+        .platform-icon {
+            font-size: 20px;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        /* Marketing Badge */
+        .marketing-badge {
+            background: rgba(241, 196, 15, 0.1);
+            color: var(--accent-gold);
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 30px;
+            border: 1px dashed var(--accent-gold);
+        }
+
+        .btn-get-started {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            background: var(--gold-grad);
+            color: #000;
+            text-decoration: none;
+            border-radius: 15px;
+            font-weight: 700;
+            font-size: 16px;
+            text-transform: uppercase;
+            box-shadow: 0 5px 15px rgba(241, 196, 15, 0.3);
+            transition: 0.3s;
+        }
+
+        .btn-get-started:active {
+            transform: scale(0.98);
+        }
     </style>
 </head>
 <body>
 
-<div class="app-container">
-    <div id="intro-screen" class="screen active-screen" style="text-align:center; padding-top:100px;">
-        <h1 style="color:gold;">POWER STAR ⭐</h1>
-        <p>Brighter Future, Better Earnings</p>
-        <button class="btn-premium" onclick="showSection('auth-screen')">GET STARTED</button>
+    <div class="app-container">
+        <div class="intro-box">
+            <div class="star-logo">⭐</div>
+            <div class="brand-name">Power Star</div>
+            
+            <p class="intro-text">
+                Welcome to the next generation of earning! 
+                <strong>Power Star</strong> provides a professional platform to earn by completing simple tasks on world-leading social networks.
+            </p>
+
+            <div class="platform-grid">
+                <div class="platform-item"><span class="platform-icon">🌐</span>Google</div>
+                <div class="platform-item"><span class="platform-icon">🎬</span>YouTube</div>
+                <div class="platform-item"><span class="platform-icon">👤</span>Facebook</div>
+                <div class="platform-item"><span class="platform-icon">🎵</span>TikTok</div>
+                <div class="platform-item"><span class="platform-icon">📷</span>Instagram</div>
+                <div class="platform-item"><span class="platform-icon">💼</span>LinkedIn</div>
+            </div>
+
+            <div class="marketing-badge">
+                🚀 Exclusive Digital Products Marketing
+            </div>
+
+            <a href="auth.html" class="btn-get-started">Start Earning Now</a>
+        </div>
     </div>
 
-    <div id="auth-screen" class="screen">
-        <div id="register-form">
-            <h2>Register</h2>
-            <input type="text" id="reg-name" placeholder="Full Name">
-            <input type="number" id="reg-num" placeholder="WhatsApp Number">
-            <input type="password" id="reg-pass" placeholder="Password">
-            <input type="text" id="reg-ref" placeholder="Referral Number (Optional)">
-            <button class="btn-premium" onclick="handleRegister()">Register Now</button>
-            <p onclick="toggleAuth(true)" style="text-align:center; font-size:12px;">Login here</p>
-        </div>
-        <div id="login-form" style="display:none;">
-            <h2>Login</h2>
-            <input type="number" id="login-num" placeholder="Number">
-            <input type="password" id="login-pass" placeholder="Password">
-            <button class="btn-premium" onclick="handleLogin()">Login</button>
-            <p onclick="toggleAuth(false)" style="text-align:center; font-size:12px;">Register here</p>
-        </div>
-    </div>
-
-    <div id="dashboard" class="screen">
-        <div style="background:var(--card); padding:20px; text-align:center; border-radius:15px; margin-bottom:20px;">
-            <p style="margin:0; font-size:12px; opacity:0.7;">BALANCE</p>
-            <h2 id="main-bal" style="color:gold; margin:5px 0;">Rs. 0.00</h2>
-        </div>
-
-        <div id="tab-home" class="tab-content active-tab">
-            <div id="task-container">Loading tasks...</div>
-        </div>
-
-        <div id="tab-team" class="tab-content">
-            <p id="my-ref-code" style="font-size:11px; background:#1e293b; padding:10px; border-radius:5px; word-break: break-all;"></p>
-            <button class="btn-premium" style="padding:10px; margin-bottom:20px;" onclick="copyRef()">COPY LINK</button>
-            <div id="team-list"></div>
-        </div>
-
-        <nav class="bottom-nav">
-            <div class="nav-item active" onclick="navTo('tab-home', this)">🏠<span>Home</span></div>
-            <div class="nav-item" onclick="navTo('tab-team', this)">👥<span>Team</span></div>
-        </nav>
-    </div>
-</div>
-
-<script>
-    const USER_API = "https://sheetdb.io/api/v1/vyntcjclg5905";
-    const TASK_API = "https://sheetdb.io/api/v1/1e9n0bdrpmh2f";
-    const DEVICE_ID = navigator.userAgent + screen.width;
-
-    function showSection(id) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen'));
-        document.getElementById(id).classList.add('active-screen');
-    }
-
-    function toggleAuth(isLogin) {
-        document.getElementById('register-form').style.display = isLogin ? 'none' : 'block';
-        document.getElementById('login-form').style.display = isLogin ? 'block' : 'none';
-    }
-
-    async function handleRegister() {
-        const name = document.getElementById('reg-name').value;
-        const num = document.getElementById('reg-num').value;
-        const pass = document.getElementById('reg-pass').value;
-        const ref = document.getElementById('reg-ref').value;
-        if(!name || !num || !pass) return alert("Fill all fields!");
-
-        const user = { name, number: num, password: pass, "reg-ref": ref || "none", deviceId: DEVICE_ID, balance: "0" };
-        try {
-            await fetch(USER_API, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({data:[user]}) });
-            localStorage.setItem('ps_user', JSON.stringify(user));
-            location.reload();
-        } catch(e) { alert("Check Connection"); }
-    }
-
-    async function handleLogin() {
-        const num = document.getElementById('login-num').value;
-        const pass = document.getElementById('login-pass').value;
-        const res = await fetch(`${USER_API}/search?number=${num}&password=${pass}`);
-        const data = await res.json();
-        if(data && data.length > 0) {
-            localStorage.setItem('ps_user', JSON.stringify(data[0]));
-            location.reload();
-        } else { alert("Invalid login!"); }
-    }
-
-    async function loadTasks() {
-        const container = document.getElementById('task-container');
-        try {
-            const res = await fetch(TASK_API);
-            const tasks = await res.json();
-            if(!tasks || tasks.length === 0 || !tasks[0].Discurption) {
-                container.innerHTML = "No tasks yet.";
-                return;
-            }
-            container.innerHTML = "";
-            tasks.forEach(t => {
-                container.innerHTML += `<div class="task-card"><span>${t.Discurption}</span><b style="color:gold;">Rs.${t.Amount}</b></div>`;
-            });
-        } catch(e) { container.innerHTML = "Error loading tasks."; }
-    }
-
-    async function loadTeamData() {
-        const user = JSON.parse(localStorage.getItem('ps_user'));
-        const teamList = document.getElementById('team-list');
-        const res = await fetch(`${USER_API}/search?reg-ref=${user.number}`);
-        const members = await res.json();
-        if(!members || members.length === 0) { teamList.innerHTML = "No team yet."; return; }
-        let html = "<b>Your Team:</b><br>";
-        members.forEach(m => { html += `<div style='padding:5px; border-bottom:1px solid #334155;'>${m.name}</div>`; });
-        teamList.innerHTML = html;
-    }
-
-    function navTo(tabId, el) {
-        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active-tab'));
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active-tab');
-        el.classList.add('active');
-        if(tabId === 'tab-team') loadTeamData();
-    }
-
-    function copyRef() {
-        const link = document.getElementById('my-ref-code').innerText;
-        navigator.clipboard.writeText(link);
-        alert("Link Copied!");
-    }
-
-    window.onload = () => {
-        const saved = localStorage.getItem('ps_user');
-        if(saved) {
-            const user = JSON.parse(saved);
-            showSection('dashboard');
-            document.getElementById('main-bal').innerText = "Rs. " + (user.balance || "0.00");
-            const refLink = window.location.origin + window.location.pathname + "?ref=" + user.number;
-            document.getElementById('my-ref-code').innerText = refLink;
-            loadTasks();
-        }
-    };
-</script>
 </body>
 </html>
