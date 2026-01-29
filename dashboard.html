@@ -1,22 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Power Star Dashboard</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Power Star - Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body { background: #0f172a; color: white; font-family: 'Poppins', sans-serif; margin: 0; padding-bottom: 80px; }
-        .header { background: linear-gradient(135deg, #f1c40f, #d4ac0d); color: black; padding: 40px 20px; border-radius: 0 0 35px 35px; text-align: center; }
-        .balance-box { font-size: 38px; font-weight: 800; margin: 10px 0; }
-        .nav { position: fixed; bottom: 0; width: 100%; background: #1e293b; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #f1c40f; }
-        .nav a { color: #94a3b8; text-decoration: none; font-size: 12px; text-align: center; }
+        .header { background: linear-gradient(135deg, #f1c40f, #d4ac0d); color: black; padding: 40px 20px; border-radius: 0 0 35px 35px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .balance-box { font-size: 42px; font-weight: 800; margin: 10px 0; }
+        .nav { position: fixed; bottom: 0; width: 100%; background: #1e293b; display: flex; justify-content: space-around; padding: 15px 0; border-top: 2px solid #f1c40f; }
+        .nav a { color: #94a3b8; text-decoration: none; font-size: 12px; text-align: center; flex: 1; }
         .nav a.active { color: #f1c40f; font-weight: 700; }
     </style>
 </head>
 <body>
     <div class="header">
-        <h3 id="u-name">Welcome</h3>
-        <p style="margin:0; opacity:0.8; font-size:12px;">TOTAL BALANCE</p>
+        <h3 id="u-name">Welcome User</h3>
+        <p style="margin:0; opacity:0.8; font-size: 13px;">YOUR CURRENT BALANCE</p>
         <div class="balance-box" id="u-balance">Rs. 0.00</div>
     </div>
 
@@ -29,22 +30,23 @@
 
     <script>
         const API = "https://sheetdb.io/api/v1/lcnr1ekbbyn58";
-        const SHEET = "Sheet1";
 
         window.onload = async function() {
             const user = JSON.parse(localStorage.getItem('power_star_user'));
-            if(!user) { window.location.href="auth.html"; return; }
+            if(!user) { window.location.href = "auth.html"; return; }
 
+            // Live Data Fetch from Sheet
             try {
-                const res = await fetch(`${API}/search?number=${user.number}&sheet=${SHEET}`);
+                const res = await fetch(`${API}/search?number=${user.number}`);
                 const data = await res.json();
                 if(data.length > 0) {
-                    const fresh = data[0];
-                    document.getElementById('u-name').innerText = "Hi, " + fresh.name;
-                    document.getElementById('u-balance').innerText = "Rs. " + parseFloat(fresh.balance).toFixed(2);
-                    localStorage.setItem('power_star_user', JSON.stringify(fresh));
+                    const freshData = data[0];
+                    document.getElementById('u-name').innerText = "Hi, " + freshData.name;
+                    document.getElementById('u-balance').innerText = "Rs. " + parseFloat(freshData.balance).toFixed(2);
+                    localStorage.setItem('power_star_user', JSON.stringify(freshData));
                 }
-            } catch(e) { 
+            } catch(e) {
+                // Fallback to local data
                 document.getElementById('u-name').innerText = "Hi, " + user.name;
                 document.getElementById('u-balance').innerText = "Rs. " + user.balance;
             }
