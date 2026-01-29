@@ -35,7 +35,6 @@
             if(!user) { window.location.href="auth.html"; return; }
 
             try {
-                // Real-time Status Sync (Block Check)
                 const res = await fetch(`${API}/search?number=${user.number}&sheet=Users`);
                 const data = await res.json();
                 if(data.length > 0) {
@@ -49,7 +48,6 @@
                     }
                 }
             } catch(e) { 
-                // Offline fallback
                 document.getElementById('u-name').innerText = "Hi, " + user.name;
                 document.getElementById('u-balance').innerText = "Rs. " + user.balance;
             }
