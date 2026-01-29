@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Power Star - Access</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --gold: #f1c40f; --dark: #0f172a; }
+        body { margin: 0; background: var(--dark); color: white; font-family: 'Poppins', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .auth-box { width: 90%; max-width: 400px; background: rgba(255,255,255,0.05); border: 1px solid rgba(241,196,15,0.2); border-radius: 25px; padding: 30px; box-sizing: border-box; }
+        input { width: 100%; padding: 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: white; margin-bottom: 15px; outline: none; box-sizing: border-box; }
+        .btn-auth { width: 100%; padding: 16px; background: linear-gradient(135deg, #f1c40f, #d4ac0d); color: #000; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; text-transform: uppercase; }
+        .footer { text-align: center; margin-top: 20px; font-size: 13px; }
+        .footer span { color: var(--gold); cursor: pointer; font-weight: 600; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="auth-box">
+        <div id="reg-form">
+            <h2 style="color:var(--gold); text-align:center;">Register</h2>
+            <input type="text" id="r-name" placeholder="Full Name">
+            <input type="number" id="r-num" placeholder="WhatsApp Number">
+            <input type="password" id="r-pass" placeholder="Create Password">
+            <input type="text" id="r-ref" placeholder="Referral Code (Optional)">
+            <button onclick="doRegister()" class="btn-auth" id="r-btn">Register Now</button>
+            <p class="footer">Member? <span onclick="toggle()">Login</span></p>
+        </div>
+        <div id="log-form" class="hidden">
+            <h2 style="color:var(--gold); text-align:center;">Login</h2>
+            <input type="number" id="l-num" placeholder="WhatsApp Number">
+            <input type="password" id="l-pass" placeholder="Password">
+            <button onclick="doLogin()" class="btn-auth" id="l-btn">Secure Login</button>
+            <p class="footer">New User? <span onclick="toggle()">Register</span></p>
+        </div>
+    </div>
+
+    <script>
+        const API = "https://sheetdb.io/api/v1/vyntcjclg5905";
+        const DEVICE = navigator.userAgent + "-" + screen.width;
+
+        function toggle() { document.getElementById('reg-form').classList.toggle('hidden'); document.getElementById('log-form').classList.toggle('hidden'); }
+
+        async function doRegister() {
+            const name = document.getElementById('r-name').value;
+            const num = document.getElementById('r-num').value;
+            const pass = document.getElementById('r-pass').value;
+            const ref = document.getElementById('r-ref').value;
+            if(!name || !num || !pass) return alert("All fields are required!");
+
+            document.getElementById('r-btn').innerText = "Processing...";
+            try {
+                // Check Number & Device
+                const nCheck = await fetch(`${API}/search?number=${num}`);
+                const nData = await nCheck.json();
+                if(nData.length > 0) return alert("Number already registered!");
+
+                const dCheck = await fetch(`${API}/search?device_id=${DEVICE}`);
+                const dData = await dCheck.json();
+                if(dData.length > 0) return alert("Device already has an account!");
+
+                // Register (Bonus 50 if Referral used)
+                let bonus = ref.trim() !== "" ? 50 : 0;
+                await fetch(API, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ data: [{ name, number: num, password: pass, referral: ref, balance: bonus, device_id: DEVICE, status: 'active' }] })
+                });
+                alert("Account Created! Login Now."); toggle();
+            } catch(e) { alert("Server Error!"); }
+            document.getElementById('r-btn').innerText = "Register Now";
+        }
+
+        async function doLogin() {
+            const num = document.getElementById('l-num').value;
+            const pass = document.getElementById('l-pass').value;
+            if(!num || !pass) return alert("Enter credentials!");
+
+            try {
+                const res = await fetch(`${API}/search?number=${num}&password=${pass}`);
+                const data = await res.json();
+                if(data.length > 0) {
+                    if(data[0].status === 'blocked') return alert("YOU ARE BLOCKED!");
+                    localStorage.setItem('power_star_user', JSON.stringify(data[0]));
+                    window.location.href="dashboard.html";
+                } else alert("Invalid Password or Number!");
+            } catch(e) { alert("Login failed."); }
+        }
+    </script>
+</body>
+</html>
