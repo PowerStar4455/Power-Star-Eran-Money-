@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Power Star - Secure Access</title>
+    <title>Power Star - Access</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #f1c40f; --dark: #0f172a; }
@@ -22,7 +22,7 @@
             <input type="text" id="r-name" placeholder="Full Name">
             <input type="number" id="r-num" placeholder="WhatsApp Number">
             <input type="password" id="r-pass" placeholder="Password">
-            <input type="text" id="r-ref" placeholder="Referral Code (Optional)">
+            <input type="text" id="r-ref" placeholder="Referral Code">
             <button onclick="doRegister()" class="btn-auth" id="r-btn">Join Now</button>
             <p class="footer">Member? <span onclick="toggle()">Login</span></p>
         </div>
@@ -50,24 +50,24 @@
             const pass = document.getElementById('r-pass').value.trim();
             const ref = document.getElementById('r-ref').value.trim();
             
-            if(!name || !num || !pass) return alert("Fill all fields!");
+            if(!name || !num || !pass) return alert("All fields required!");
             const btn = document.getElementById('r-btn');
             btn.innerText = "Processing..."; btn.disabled = true;
 
             try {
-                // Security 1: Number Check
+                // Check if user exists in 'Users' sheet
                 const res = await fetch(`${API}/search?number=${num}&sheet=Users`);
                 const data = await res.json();
-                if(data.length > 0) { alert("Number already registered!"); btn.disabled = false; return; }
+                if(data.length > 0) { alert("Already registered!"); btn.disabled = false; return; }
 
-                // Security 2: Device Check
+                // Check Device
                 const dRes = await fetch(`${API}/search?device_id=${DEVICE}&sheet=Users`);
                 const dData = await dRes.json();
-                if(dData.length > 0) { alert("Cheating Detected: One account per mobile!"); btn.disabled = false; return; }
+                if(dData.length > 0) { alert("One device, one account!"); btn.disabled = false; return; }
 
-                // Saving Data
-                const bonus = ref !== "" ? 50 : 0;
-                const saveRes = await fetch(`${API}?sheet=Users`, {
+                // Save Data
+                const bonus = (ref !== "") ? 50 : 0;
+                await fetch(`${API}?sheet=Users`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ data: [{
@@ -75,37 +75,35 @@
                         balance: bonus, device_id: DEVICE, status: 'active'
                     }]})
                 });
-
-                if(saveRes.ok) { alert("Account Created! Rs." + bonus + " Added."); toggle(); }
-                else { alert("Registration Error!"); }
-            } catch(e) { alert("Connection Error!"); }
+                alert("Success! Now Login."); toggle();
+            } catch(e) { alert("Server Error!"); }
             btn.innerText = "Join Now"; btn.disabled = false;
         }
 
         async function doLogin() {
             const num = document.getElementById('l-num').value.trim();
             const pass = document.getElementById('l-pass').value.trim();
-            if(!num || !pass) return alert("Fill credentials!");
             const btn = document.getElementById('l-btn');
+            if(!num || !pass) return alert("Fill credentials!");
+            
             btn.innerText = "Verifying..."; btn.disabled = true;
 
             try {
-                // Hum poori sheet fetch karke local filter karenge taaki API search error na de
-                const res = await fetch(`${API}?sheet=Users`);
-                const allUsers = await res.json();
-                
-                const user = allUsers.find(u => u.number == num && u.password == pass);
+                // Better login: Search specifically for number and sheet
+                const res = await fetch(`${API}/search?number=${num}&sheet=Users`);
+                const data = await res.json();
 
-                if(user) {
-                    if(user.status === 'blocked') { alert("❌ ACCOUNT BLOCKED!"); }
-                    else {
-                        localStorage.setItem('power_star_user', JSON.stringify(user));
-                        window.location.href = "dashboard.html";
-                    }
-                } else {
-                    alert("❌ Invalid Number or Password!");
-                }
-            } catch(e) { alert("Login failed! Check internet."); }
+                if(data.length > 0) {
+                    const user = data[0];
+                    if(user.password == pass) {
+                        if(user.status === 'blocked') { alert("ACCOUNT BLOCKED!"); }
+                        else {
+                            localStorage.setItem('power_star_user', JSON.stringify(user));
+                            window.location.href = "dashboard.html";
+                        }
+                    } else { alert("Wrong Password!"); }
+                } else { alert("User Not Found!"); }
+            } catch(e) { alert("Login failed!"); }
             btn.innerText = "Secure Login"; btn.disabled = false;
         }
     </script>
