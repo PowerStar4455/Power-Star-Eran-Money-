@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Power Star - Access</title>
+    <title>Power Star - Secure Access</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #f1c40f; --dark: #0f172a; }
         body { margin: 0; background: var(--dark); color: white; font-family: 'Poppins', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
         .auth-box { width: 90%; max-width: 400px; background: rgba(255,255,255,0.05); border: 1px solid rgba(241,196,15,0.2); border-radius: 25px; padding: 30px; box-sizing: border-box; }
         input { width: 100%; padding: 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: white; margin-bottom: 15px; outline: none; box-sizing: border-box; }
-        .btn-auth { width: 100%; padding: 16px; background: linear-gradient(135deg, #f1c40f, #d4ac0d); color: #000; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; text-transform: uppercase; }
+        .btn-auth { width: 100%; padding: 16px; background: linear-gradient(135deg, #f1c40f, #d4ac0d); color: #000; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; text-transform: uppercase; width: 100%; }
         .footer { text-align: center; margin-top: 20px; font-size: 13px; }
         .footer span { color: var(--gold); cursor: pointer; font-weight: 600; }
         .hidden { display: none; }
@@ -21,9 +21,9 @@
             <h2 style="color:var(--gold); text-align:center;">Register</h2>
             <input type="text" id="r-name" placeholder="Full Name">
             <input type="number" id="r-num" placeholder="WhatsApp Number">
-            <input type="password" id="r-pass" placeholder="Create Password">
+            <input type="password" id="r-pass" placeholder="Password">
             <input type="text" id="r-ref" placeholder="Referral Code (Optional)">
-            <button onclick="doRegister()" class="btn-auth" id="r-btn">Register Now</button>
+            <button onclick="doRegister()" class="btn-auth" id="r-btn">Join Now</button>
             <p class="footer">Member? <span onclick="toggle()">Login</span></p>
         </div>
         <div id="log-form" class="hidden">
@@ -31,18 +31,17 @@
             <input type="number" id="l-num" placeholder="WhatsApp Number">
             <input type="password" id="l-pass" placeholder="Password">
             <button onclick="doLogin()" class="btn-auth" id="l-btn">Secure Login</button>
-            <p class="footer">New User? <span onclick="toggle()">Register</span></p>
+            <p class="footer">New? <span onclick="toggle()">Register</span></p>
         </div>
     </div>
 
     <script>
-        // --- ZAROORI VARIABLES ---
-        const API = "https://sheetdb.io/api/v1/vyntcjclg5905";
+        const API = "https://sheetdb.io/api/v1/5lqvbtiym7agr";
         const DEVICE = navigator.userAgent + "-" + screen.width;
 
-        function toggle() {
-            document.getElementById('reg-form').classList.toggle('hidden');
-            document.getElementById('log-form').classList.toggle('hidden');
+        function toggle() { 
+            document.getElementById('reg-form').classList.toggle('hidden'); 
+            document.getElementById('log-form').classList.toggle('hidden'); 
         }
 
         async function doRegister() {
@@ -50,51 +49,40 @@
             const num = document.getElementById('r-num').value.trim();
             const pass = document.getElementById('r-pass').value.trim();
             const ref = document.getElementById('r-ref').value.trim();
-            
-            if(!name || !num || !pass) return alert("Please fill all fields!");
+            if(!name || !num || !pass) return alert("Fill all fields!");
 
             const btn = document.getElementById('r-btn');
-            btn.innerText = "Saving..."; btn.disabled = true;
+            btn.innerText = "Checking..."; btn.disabled = true;
 
             try {
-                // Duplicate Number Check
+                // 1. WhatsApp & Device Check (Anti-Cheating)
                 const checkRes = await fetch(`${API}/search?number=${num}&sheet=Users`);
                 const checkData = await checkRes.json();
                 if(checkData.length > 0) { alert("Number already registered!"); btn.disabled = false; return; }
 
-                // Device ID Check
-                const devRes = await fetch(`${API}/search?device_id=${DEVICE}&sheet=Users`);
-                const devData = await devRes.json();
-                if(devData.length > 0) { alert("One account per device allowed!"); btn.disabled = false; return; }
+                const devCheck = await fetch(`${API}/search?device_id=${DEVICE}&sheet=Users`);
+                const devData = await devCheck.json();
+                if(devData.length > 0) { alert("One device, One account only!"); btn.disabled = false; return; }
 
-                // Save Data
-                const saveRes = await fetch(`${API}?sheet=Users`, {
+                // 2. Save Data
+                const bonus = ref !== "" ? 50 : 0;
+                await fetch(`${API}?sheet=Users`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        data: [{
-                            name: name,
-                            number: num,
-                            password: pass,
-                            referral: ref,
-                            balance: (ref !== "" ? 50 : 0),
-                            device_id: DEVICE,
-                            status: 'active'
-                        }]
-                    })
+                    body: JSON.stringify({ data: [{
+                        name, number: num, password: pass, referral: ref,
+                        balance: bonus, device_id: DEVICE, status: 'active'
+                    }]})
                 });
-
-                if(saveRes.ok) {
-                    alert("✅ Registration Successful!"); toggle();
-                }
-            } catch(e) { alert("Error connecting to sheet!"); }
-            btn.innerText = "Register Now"; btn.disabled = false;
+                alert("Success! Bonus: Rs." + bonus + ". Please Login."); toggle();
+            } catch(e) { alert("Server Error!"); }
+            btn.innerText = "Join Now"; btn.disabled = false;
         }
 
         async function doLogin() {
             const num = document.getElementById('l-num').value.trim();
             const pass = document.getElementById('l-pass').value.trim();
-            if(!num || !pass) return alert("Fill all fields!");
+            if(!num || !pass) return alert("Enter credentials!");
 
             const btn = document.getElementById('l-btn');
             btn.innerText = "Verifying..."; btn.disabled = true;
@@ -102,17 +90,17 @@
             try {
                 const res = await fetch(`${API}/search?number=${num}&sheet=Users`);
                 const data = await res.json();
-
                 if(data.length > 0) {
-                    if(data[0].password == pass) {
-                        if(data[0].status === 'blocked') { alert("❌ ACCOUNT BLOCKED!"); }
+                    const user = data[0];
+                    if(user.password == pass) {
+                        if(user.status === 'blocked') { alert("❌ ACCOUNT BLOCKED!"); }
                         else {
-                            localStorage.setItem('power_star_user', JSON.stringify(data[0]));
+                            localStorage.setItem('power_star_user', JSON.stringify(user));
                             window.location.href = "dashboard.html";
                         }
-                    } else { alert("❌ Wrong Password!"); }
-                } else { alert("❌ User not found!"); }
-            } catch(e) { alert("Login Error!"); }
+                    } else { alert("Wrong Password!"); }
+                } else { alert("User Not Found!"); }
+            } catch(e) { alert("Error!"); }
             btn.innerText = "Secure Login"; btn.disabled = false;
         }
     </script>
