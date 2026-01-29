@@ -36,7 +36,9 @@
     </div>
 
     <script>
-        const API = "https://sheetdb.io/api/v1/5lqvbtiym7agr";
+        // Nayi API URL aur Sheet Name Fix
+        const API = "https://sheetdb.io/api/v1/lcnr1ekbbyn58";
+        const SHEET = "Sheet1"; 
         const DEVICE = navigator.userAgent + "-" + screen.width;
 
         function toggle() {
@@ -50,59 +52,57 @@
             const pass = document.getElementById('r-pass').value.trim();
             const ref = document.getElementById('r-ref').value.trim();
             
-            if(!name || !num || !pass) return alert("All fields required!");
+            if(!name || !num || !pass) return alert("All fields are required!");
             const btn = document.getElementById('r-btn');
-            btn.innerText = "Processing..."; btn.disabled = true;
+            btn.innerText = "Saving to Database..."; btn.disabled = true;
 
             try {
-                // Check if user exists in 'Users' sheet
-                const res = await fetch(`${API}/search?number=${num}&sheet=Users`);
+                // Check if Number exists
+                const res = await fetch(`${API}/search?number=${num}&sheet=${SHEET}`);
                 const data = await res.json();
-                if(data.length > 0) { alert("Already registered!"); btn.disabled = false; return; }
-
-                // Check Device
-                const dRes = await fetch(`${API}/search?device_id=${DEVICE}&sheet=Users`);
-                const dData = await dRes.json();
-                if(dData.length > 0) { alert("One device, one account!"); btn.disabled = false; return; }
+                if(data.length > 0) { alert("Number already exists!"); btn.disabled = false; return; }
 
                 // Save Data
-                const bonus = (ref !== "") ? 50 : 0;
-                await fetch(`${API}?sheet=Users`, {
+                const save = await fetch(`${API}?sheet=${SHEET}`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ data: [{
-                        name, number: num, password: pass, referral: ref,
-                        balance: bonus, device_id: DEVICE, status: 'active'
-                    }]})
+                    body: JSON.stringify({
+                        data: [{
+                            name, number: num, password: pass, referral: ref,
+                            balance: (ref !== "" ? 50 : 0), device_id: DEVICE, status: "active"
+                        }]
+                    })
                 });
-                alert("Success! Now Login."); toggle();
-            } catch(e) { alert("Server Error!"); }
+
+                const result = await save.json();
+                if(result.created === 1) {
+                    alert("✅ Success! Your data is saved in Sheet1.");
+                    toggle();
+                } else {
+                    alert("❌ Error: API could not write to Sheet1.");
+                }
+            } catch(e) { alert("Connection Error!"); }
             btn.innerText = "Join Now"; btn.disabled = false;
         }
 
         async function doLogin() {
             const num = document.getElementById('l-num').value.trim();
             const pass = document.getElementById('l-pass').value.trim();
+            if(!num || !pass) return alert("Enter credentials!");
             const btn = document.getElementById('l-btn');
-            if(!num || !pass) return alert("Fill credentials!");
-            
-            btn.innerText = "Verifying..."; btn.disabled = true;
+            btn.innerText = "Authenticating..."; btn.disabled = true;
 
             try {
-                // Better login: Search specifically for number and sheet
-                const res = await fetch(`${API}/search?number=${num}&sheet=Users`);
+                const res = await fetch(`${API}/search?number=${num}&sheet=${SHEET}`);
                 const data = await res.json();
 
                 if(data.length > 0) {
                     const user = data[0];
                     if(user.password == pass) {
-                        if(user.status === 'blocked') { alert("ACCOUNT BLOCKED!"); }
-                        else {
-                            localStorage.setItem('power_star_user', JSON.stringify(user));
-                            window.location.href = "dashboard.html";
-                        }
-                    } else { alert("Wrong Password!"); }
-                } else { alert("User Not Found!"); }
+                        localStorage.setItem('power_star_user', JSON.stringify(user));
+                        window.location.href = "dashboard.html";
+                    } else { alert("❌ Incorrect Password!"); }
+                } else { alert("❌ User Not Found in Sheet1!"); }
             } catch(e) { alert("Login failed!"); }
             btn.innerText = "Secure Login"; btn.disabled = false;
         }
