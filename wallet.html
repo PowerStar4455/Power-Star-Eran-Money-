@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Power Star Wallet</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; color: white; margin: 0; padding: 15px; }
+        .box { background: #1e293b; padding: 20px; border-radius: 15px; margin-bottom: 15px; border: 1px solid #334155; }
+        .balance-box { background: linear-gradient(135deg, #1e3a8a, #1e40af); text-align: center; padding: 30px; border: none; }
+        .rules-box { border-left: 5px solid #fbbf24; }
+        h1 { margin: 10px 0; color: #fbbf24; }
+        h3 { margin-bottom: 10px; color: #94a3b8; font-size: 16px; text-transform: uppercase; }
+        .rule-text { font-size: 14px; color: #cbd5e1; margin: 5px 0; }
+        input, select { width: 100%; padding: 12px; margin: 10px 0; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: white; box-sizing: border-box; }
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 10px; color: white; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-withdraw { background: #f59e0b; }
+        .btn-bind { background: #10b981; }
+        .btn-logout { background: #ef4444; margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #334155; font-size: 13px; }
+        th { color: #94a3b8; }
+        .support { display: flex; gap: 10px; margin-top: 15px; }
+        .support a { flex: 1; text-align: center; padding: 12px; text-decoration: none; color: white; border-radius: 10px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="box balance-box">
+        <p style="margin:0; opacity:0.8;">Available Balance</p>
+        <h1 id="user-balance">Rs. 0.00</h1>
+    </div>
+
+    <div class="box rules-box">
+        <h3 style="color: #fbbf24;">Withdrawal Instructions</h3>
+        <p class="rule-text">• Minimum withdrawal limit is **Rs. 525**.</p>
+        <p class="rule-text">• **5% withdrawal fee** will be charged on every transaction.</p>
+        <p class="rule-text">• Requests are processed within 24 hours.</p>
+    </div>
+
+    <div class="box">
+        <h3>Withdraw Money</h3>
+        <input type="number" id="w-amount" placeholder="Min Amount 525">
+        <button class="btn btn-withdraw" id="btn-w" onclick="requestWithdraw()">Send Request</button>
+    </div>
+
+    <div class="box">
+        <h3>Bind Wallet (One-Time)</h3>
+        <select id="w-type">
+            <option value="Easypaisa">Easypaisa</option>
+            <option value="JazzCash">JazzCash</option>
+        </select>
+        <input type="text" id="w-title" placeholder="Account Name">
+        <input type="number" id="w-num" placeholder="Account Number">
+        <button class="btn btn-bind" id="btn-b" onclick="bindAccount()">Save Binding</button>
+    </div>
+
+    <div class="box">
+        <h3>Transaction History</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="history-data"></tbody>
+        </table>
+    </div>
+
+    <div class="support">
+        <a href="https://whatsapp.com/channel/0029VbBtlLd29752E8E2z10W" style="background:#25D366;">WhatsApp</a>
+        <a href="https://t.me/+wrV-LempJ39lY2Fk" style="background:#0088cc;">Telegram</a>
+    </div>
+    
+    <button class="btn btn-logout" onclick="logoutUser()">Logout Account</button>
+
+    <script>
+        const API_URL = "https://sheetdb.io/api/v1/lcnr1ekbbyn58"; 
+        const userObj = JSON.parse(localStorage.getItem('power_star_user'));
+        const USER_ID = userObj ? userObj.number : null;
+
+        window.onload = function() {
+            if(!USER_ID) {
+                window.location.href = "auth.html";
+            } else {
+                fetchDashboardData();
+            }
+        };
+
+        async function fetchDashboardData() {
+            try {
+                // Fetch Balance
+                const res = await fetch(`${API_URL}/search?number=${USER_ID}`);
+                const data = await res.json();
+                if(data.length > 0) {
+                    document.getElementById('user-balance').innerText = "Rs. " + (data[0].balance || "0");
+                }
+
+                // Fetch History
+                const resH = await fetch(`${API_URL}/search?number=${USER_ID}&row_type=WITHDRAWAL`);
+                const logs = await resH.json();
+                const tbody = document.getElementById('history-data');
+                
+                if(logs.length > 0) {
+                    tbody.innerHTML = logs.map(row => `
+                        <tr>
+                            <td>${row.date}</td>
+                            <td>Rs. ${row.w_amount}</td>
+                            <td style="color:#fbbf24; font-weight:bold;">${row.status}</td>
+                        </tr>
+                    `).join('');
+                } else {
+                    tbody.innerHTML = "<tr><td colspan='3' style='text-align:center;'>No history found</td></tr>";
+                }
+            } catch(e) { console.log("Load Error"); }
+        }
+
+        async function requestWithdraw() {
+            const amt = document.getElementById('w-amount').value;
+            const currentBal = parseFloat(document.getElementById('user-balance').innerText.replace('Rs. ', ''));
+
+            // 525 Limit & English Alert
+            if(!amt || amt < 525) {
+                return alert("Minimum withdrawal amount is Rs. 525. Please enter a higher amount.");
+            }
+
+            if(amt > currentBal) {
+                return alert("Insufficient balance! Your current balance is lower than the requested amount.");
+            }
+
+            const btn = document.getElementById('btn-w');
+            btn.innerText = "Processing..."; btn.disabled = true;
+
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        data: [{
+                            number: USER_ID,
+                            row_type: "WITHDRAWAL",
+                            w_amount: amt,
+                            status: "pending",
+                            date: new Date().toLocaleDateString()
+                        }]
+                    })
+                });
+                alert("✅ Request Sent! 5% processing fee will be applied.");
+                location.reload();
+            } catch(e) { alert("Error!"); btn.disabled = false; }
+        }
+
+        async function bindAccount() {
+            const num = document.getElementById('w-num').value;
+            const title = document.getElementById('w-title').value;
+            const type = document.getElementById('w-type').value;
+
+            if(!num || !title) return alert("Please fill all bank details.");
+
+            const btn = document.getElementById('btn-b');
+            btn.innerText = "Binding..."; btn.disabled = true;
+
+            try {
+                const check = await fetch(`${API_URL}/search?acc_number=${num}`);
+                const exists = await check.json();
+                if(exists.length > 0) {
+                    alert("❌ This account number is already bound to another user.");
+                    btn.disabled = false; return;
+                }
+
+                await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        data: [{
+                            number: USER_ID,
+                            row_type: "BINDING",
+                            wallet_name: type,
+                            acc_title: title,
+                            acc_number: num,
+                            date: new Date().toLocaleDateString()
+                        }]
+                    })
+                });
+                alert("✅ Wallet Bound Successfully!");
+                location.reload();
+            } catch(e) { alert("Error!"); btn.disabled = false; }
+        }
+
+        function logoutUser() {
+            localStorage.clear();
+            window.location.href = "auth.html";
+        }
+    </script>
+</body>
+</html>
