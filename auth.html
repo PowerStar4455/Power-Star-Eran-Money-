@@ -1,16 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Power Star - Access</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #f1c40f; --dark: #0f172a; }
         body { margin: 0; background: var(--dark); color: white; font-family: 'Poppins', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .auth-box { width: 90%; max-width: 400px; background: rgba(255,255,255,0.05); border: 1px solid rgba(241,196,15,0.2); border-radius: 25px; padding: 30px; box-sizing: border-box; }
+        .auth-box { width: 90%; max-width: 400px; background: rgba(255,255,255,0.05); border: 1px solid rgba(241,196,15,0.2); border-radius: 25px; padding: 30px; box-sizing: border-box; box-shadow: 0 15px 35px rgba(0,0,0,0.5); }
         input { width: 100%; padding: 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: white; margin-bottom: 15px; outline: none; box-sizing: border-box; }
-        .btn-auth { width: 100%; padding: 16px; background: linear-gradient(135deg, #f1c40f, #d4ac0d); color: #000; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; text-transform: uppercase; width: 100%; }
-        .footer { text-align: center; margin-top: 20px; font-size: 13px; opacity: 0.8; }
+        input:focus { border-color: var(--gold); }
+        .btn-auth { width: 100%; padding: 16px; background: linear-gradient(135deg, #f1c40f, #d4ac0d); color: #000; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; text-transform: uppercase; font-size: 16px; transition: 0.3s; }
+        .btn-auth:active { transform: scale(0.98); }
+        .footer { text-align: center; margin-top: 20px; font-size: 14px; opacity: 0.8; }
         .footer span { color: var(--gold); cursor: pointer; font-weight: 600; }
         .hidden { display: none; }
     </style>
@@ -18,27 +21,26 @@
 <body>
     <div class="auth-box">
         <div id="reg-form">
-            <h2 style="color:var(--gold); text-align:center;">Register</h2>
+            <h2 style="color:var(--gold); text-align:center;">Create Account</h2>
             <input type="text" id="r-name" placeholder="Full Name">
             <input type="number" id="r-num" placeholder="WhatsApp Number">
             <input type="password" id="r-pass" placeholder="Password">
-            <input type="text" id="r-ref" placeholder="Referral Code">
+            <input type="text" id="r-ref" placeholder="Referral Code (Optional)">
             <button onclick="doRegister()" class="btn-auth" id="r-btn">Join Now</button>
-            <p class="footer">Member? <span onclick="toggle()">Login</span></p>
+            <p class="footer">Already a member? <span onclick="toggle()">Login</span></p>
         </div>
+
         <div id="log-form" class="hidden">
-            <h2 style="color:var(--gold); text-align:center;">Login</h2>
+            <h2 style="color:var(--gold); text-align:center;">Welcome Back</h2>
             <input type="number" id="l-num" placeholder="WhatsApp Number">
             <input type="password" id="l-pass" placeholder="Password">
             <button onclick="doLogin()" class="btn-auth" id="l-btn">Secure Login</button>
-            <p class="footer">New? <span onclick="toggle()">Register</span></p>
+            <p class="footer">Don't have an account? <span onclick="toggle()">Register</span></p>
         </div>
     </div>
 
     <script>
-        // Nayi API URL aur Sheet Name Fix
         const API = "https://sheetdb.io/api/v1/lcnr1ekbbyn58";
-        const SHEET = "Sheet1"; 
         const DEVICE = navigator.userAgent + "-" + screen.width;
 
         function toggle() {
@@ -48,62 +50,60 @@
 
         async function doRegister() {
             const name = document.getElementById('r-name').value.trim();
-            const num = document.getElementById('r-num').value.trim();
-            const pass = document.getElementById('r-pass').value.trim();
-            const ref = document.getElementById('r-ref').value.trim();
+            const number = document.getElementById('r-num').value.trim();
+            const password = document.getElementById('r-pass').value.trim();
+            const referral = document.getElementById('r-ref').value.trim();
             
-            if(!name || !num || !pass) return alert("All fields are required!");
+            if(!name || !number || !password) return alert("Please fill all fields!");
             const btn = document.getElementById('r-btn');
-            btn.innerText = "Saving to Database..."; btn.disabled = true;
+            btn.innerText = "Processing..."; btn.disabled = true;
 
             try {
-                // Check if Number exists
-                const res = await fetch(`${API}/search?number=${num}&sheet=${SHEET}`);
-                const data = await res.json();
-                if(data.length > 0) { alert("Number already exists!"); btn.disabled = false; return; }
-
-                // Save Data
-                const save = await fetch(`${API}?sheet=${SHEET}`, {
+                const response = await fetch(API, {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         data: [{
-                            name, number: num, password: pass, referral: ref,
-                            balance: (ref !== "" ? 50 : 0), device_id: DEVICE, status: "active"
+                            name, number, password, referral,
+                            balance: (referral !== "" ? 50 : 0),
+                            device_id: DEVICE,
+                            status: "active"
                         }]
                     })
                 });
-
-                const result = await save.json();
+                const result = await response.json();
                 if(result.created === 1) {
-                    alert("✅ Success! Your data is saved in Sheet1.");
+                    alert("✅ Registration Successful! Please Login.");
                     toggle();
-                } else {
-                    alert("❌ Error: API could not write to Sheet1.");
-                }
-            } catch(e) { alert("Connection Error!"); }
+                } else { alert("❌ Error: API Connection Issues."); }
+            } catch(e) { alert("Network Error!"); }
             btn.innerText = "Join Now"; btn.disabled = false;
         }
 
         async function doLogin() {
             const num = document.getElementById('l-num').value.trim();
             const pass = document.getElementById('l-pass').value.trim();
-            if(!num || !pass) return alert("Enter credentials!");
+            if(!num || !pass) return alert("Fill credentials!");
+            
             const btn = document.getElementById('l-btn');
-            btn.innerText = "Authenticating..."; btn.disabled = true;
+            btn.innerText = "Verifying..."; btn.disabled = true;
 
             try {
-                const res = await fetch(`${API}/search?number=${num}&sheet=${SHEET}`);
+                const res = await fetch(`${API}/search?number=${num}`);
                 const data = await res.json();
-
                 if(data.length > 0) {
                     const user = data[0];
                     if(user.password == pass) {
-                        localStorage.setItem('power_star_user', JSON.stringify(user));
-                        window.location.href = "dashboard.html";
-                    } else { alert("❌ Incorrect Password!"); }
-                } else { alert("❌ User Not Found in Sheet1!"); }
-            } catch(e) { alert("Login failed!"); }
+                        // Original Device Security
+                        if(user.device_id && user.device_id !== DEVICE) {
+                            alert("❌ Account locked to another device!");
+                        } else {
+                            localStorage.setItem('power_star_user', JSON.stringify(user));
+                            window.location.href = "dashboard.html";
+                        }
+                    } else { alert("❌ Wrong Password!"); }
+                } else { alert("❌ User Not Found!"); }
+            } catch(e) { alert("Login Error!"); }
             btn.innerText = "Secure Login"; btn.disabled = false;
         }
     </script>
