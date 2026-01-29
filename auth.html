@@ -3,132 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Power Star - Access</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>Power Star Access</title>
     <style>
-        :root { --gold: #f1c40f; --dark: #0f172a; }
-        body { margin: 0; background: var(--dark); color: white; font-family: 'Poppins', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .auth-box { width: 90%; max-width: 400px; background: rgba(255,255,255,0.05); border: 1px solid rgba(241,196,15,0.2); border-radius: 25px; padding: 30px; box-sizing: border-box; box-shadow: 0 15px 35px rgba(0,0,0,0.5); }
-        input { width: 100%; padding: 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: white; margin-bottom: 15px; outline: none; box-sizing: border-box; }
-        input:focus { border-color: var(--gold); }
-        .btn-auth { width: 100%; padding: 16px; background: linear-gradient(135deg, #f1c40f, #d4ac0d); color: #000; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; text-transform: uppercase; font-size: 16px; transition: 0.3s; }
-        .btn-auth:active { transform: scale(0.98); }
-        .footer { text-align: center; margin-top: 20px; font-size: 14px; opacity: 0.8; }
-        .footer span { color: var(--gold); cursor: pointer; font-weight: 600; }
+        body { background: #0f172a; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .auth-box { background: #1e293b; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; border: 1px solid #fbbf24; }
+        input { width: 100%; padding: 15px; margin: 10px 0; border-radius: 10px; border: none; }
+        button { width: 100%; padding: 15px; background: #fbbf24; color: black; font-weight: bold; border: none; border-radius: 10px; cursor: pointer; }
         .hidden { display: none; }
     </style>
 </head>
 <body>
     <div class="auth-box">
-        <div id="reg-form">
-            <h2 style="color:var(--gold); text-align:center;">Create Account</h2>
-            <input type="text" id="r-name" placeholder="Full Name">
-            <input type="number" id="r-num" placeholder="WhatsApp Number">
-            <input type="password" id="r-pass" placeholder="Password">
-            <input type="text" id="r-ref" placeholder="Referral Code (Optional)">
-            <button onclick="doRegister()" class="btn-auth" id="r-btn">Join Now</button>
-            <p class="footer">Already a member? <span onclick="toggle()">Login</span></p>
+        <div id="log-form">
+            <h2 style="color:#fbbf24;">Login</h2>
+            <input type="number" id="l-num" placeholder="Mobile Number">
+            <input type="password" id="l-pass" placeholder="Password">
+            <button id="l-btn" onclick="doLogin()">LOGIN</button>
+            <p onclick="toggle()" style="margin-top:20px; cursor:pointer; color:#94a3b8;">Create New Account</p>
         </div>
 
-        <div id="log-form" class="hidden">
-            <h2 style="color:var(--gold); text-align:center;">Welcome Back</h2>
-            <input type="number" id="l-num" placeholder="WhatsApp Number">
-            <input type="password" id="l-pass" placeholder="Password">
-            <button onclick="doLogin()" class="btn-auth" id="l-btn">Secure Login</button>
-            <p class="footer">Don't have an account? <span onclick="toggle()">Register</span></p>
+        <div id="reg-form" class="hidden">
+            <h2 style="color:#fbbf24;">Register</h2>
+            <input type="text" id="r-name" placeholder="Full Name">
+            <input type="number" id="r-num" placeholder="Mobile Number">
+            <input type="password" id="r-pass" placeholder="Password">
+            <input type="text" id="r-ref" placeholder="Referral Code (Optional)">
+            <button id="r-btn" onclick="doRegister()">REGISTER</button>
+            <p onclick="toggle()" style="margin-top:20px; cursor:pointer; color:#94a3b8;">Back to Login</p>
         </div>
     </div>
 
-        
     <script>
-    const API = "https://sheetdb.io/api/v1/lcnr1ekbbyn58";
-    const DEVICE = navigator.userAgent + "-" + screen.width;
+        const API = "https://sheetdb.io/api/v1/lcnr1ekbbyn58"; 
+        const DEVICE = navigator.userAgent + "-" + screen.width;
 
-    function toggle() {
-        document.getElementById('reg-form').classList.toggle('hidden');
-        document.getElementById('log-form').classList.toggle('hidden');
-    }
+        function toggle() {
+            document.getElementById('reg-form').classList.toggle('hidden');
+            document.getElementById('log-form').classList.toggle('hidden');
+        }
 
-    // --- REGISTRATION WITH DEVICE BLOCK ---
-    async function doRegister() {
-        const name = document.getElementById('r-name').value.trim();
-        let num = document.getElementById('r-num').value.trim();
-        const pass = document.getElementById('r-pass').value.trim();
-        const ref = document.getElementById('r-ref').value.trim();
-        
-        if(!name || !num || !pass) return alert("Saray khalay pur karen!");
-        
-        // Number formatting (Removes leading 0 to match sheet)
-        if (num.startsWith('0')) { num = num.substring(1); }
+        // --- NEW LOGIN LOGIC (Fixed for Wallet) ---
+        async function doLogin() {
+            let num = document.getElementById('l-num').value.trim();
+            const pass = document.getElementById('l-pass').value.trim();
+            
+            if(!num || !pass) return alert("Please fill all fields");
 
-        const btn = document.getElementById('r-btn');
-        btn.innerText = "Checking Device..."; btn.disabled = true;
+            // Sheet Sync (0 remove karna)
+            if (num.startsWith('0')) { num = num.substring(1); }
 
-        try {
-            // Check if device already exists in Sheet
-            const checkRes = await fetch(API);
-            const allUsers = await checkRes.json();
-            const isDeviceUsed = allUsers.find(u => u.device_id === DEVICE);
+            const btn = document.getElementById('l-btn');
+            btn.innerText = "Checking..."; btn.disabled = true;
 
-            if(isDeviceUsed) {
-                alert("❌ Error: Is mobile par pehle se ek account bana hua hai!");
-                btn.innerText = "Join Now"; btn.disabled = false;
-                return;
-            }
+            try {
+                const res = await fetch(API);
+                const data = await res.json();
+                
+                // User check
+                const user = data.find(u => String(u.number).trim() === String(num));
 
-            // If new device, proceed to register
-            const response = await fetch(API, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    data: [{
-                        name: name, number: num, password: pass, referral: ref,
-                        balance: (ref !== "" ? 50 : 0), device_id: DEVICE, status: "active"
-                    }]
-                })
-            });
+                if(user) {
+                    if(user.password == pass) {
+                        if(user.device_id && user.device_id !== DEVICE) {
+                            alert("❌ Account Locked to another device!");
+                        } else {
+                            // !!! YE LINE HAI ASLI SOLUTION !!!
+                            // Hum poora data save kar rahe hain taaki Wallet crash na ho
+                            localStorage.setItem('power_star_user', JSON.stringify(user));
+                            window.location.href = "dashboard.html"; // Ya wallet.html jahan aap bhejna chahein
+                        }
+                    } else { alert("❌ Wrong Password"); }
+                } else { alert("❌ User Not Found"); }
+            } catch(e) { alert("Network Error"); }
+            btn.innerText = "LOGIN"; btn.disabled = false;
+        }
 
-            const res = await response.json();
-            if(res.created === 1) {
-                alert("✅ Registration Successful!");
-                toggle();
-            }
-        } catch(e) { alert("Network Error!"); }
-        btn.innerText = "Join Now"; btn.disabled = false;
-    }
+        // --- REGISTER LOGIC ---
+        async function doRegister() {
+            const name = document.getElementById('r-name').value.trim();
+            let num = document.getElementById('r-num').value.trim();
+            const pass = document.getElementById('r-pass').value.trim();
+            const ref = document.getElementById('r-ref').value.trim();
+            
+            if (num.startsWith('0')) { num = num.substring(1); }
 
-    // --- LOGIN WITH SMART SEARCH ---
-    async function doLogin() {
-        let num = document.getElementById('l-num').value.trim();
-        const pass = document.getElementById('l-pass').value.trim();
-        if(!num || !pass) return alert("Credentials pur karen!");
-        
-        if (num.startsWith('0')) { num = num.substring(1); }
+            const btn = document.getElementById('r-btn');
+            btn.innerText = "Processing..."; btn.disabled = true;
 
-        const btn = document.getElementById('l-btn');
-        btn.innerText = "VERIFYING..."; btn.disabled = true;
+            try {
+                const checkRes = await fetch(API);
+                const allUsers = await checkRes.json();
+                if(allUsers.find(u => u.device_id === DEVICE)) {
+                    alert("❌ Error: One Account per Device!");
+                    btn.disabled = false; return;
+                }
 
-        try {
-            const res = await fetch(API); 
-            const data = await res.json();
-            const user = data.find(u => String(u.number).trim() === String(num));
-
-            if(user) {
-                if(user.password == pass) {
-                    if(user.device_id && user.device_id !== DEVICE) {
-                        alert("❌ Account locked to another device!");
-                    } else {
-                        localStorage.setItem('power_star_user', JSON.stringify(user));
-                        window.location.href = "dashboard.html";
-                    }
-                } else { alert("❌ Ghalat Password!"); }
-            } else {
-                alert("❌ User Not Found!");
-            }
-        } catch(e) { alert("Login Error!"); }
-        btn.innerText = "Secure Login"; btn.disabled = false;
-    }
-</script>
-    
+                const res = await fetch(API, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        data: [{
+                            name, number: num, password: pass, referral: ref,
+                            balance: (ref ? 50 : 0), device_id: DEVICE, status: "active"
+                        }]
+                    })
+                });
+                
+                if(res.ok) {
+                    alert("✅ Account Created! Login Now.");
+                    toggle();
+                }
+            } catch(e) { alert("Error!"); }
+            btn.innerText = "REGISTER"; btn.disabled = false;
+        }
+    </script>
 </body>
 </html>
