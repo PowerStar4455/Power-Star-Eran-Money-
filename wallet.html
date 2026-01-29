@@ -3,195 +3,284 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Power Star Wallet</title>
+    <title>Power Star | Secure Wallet</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; color: white; margin: 0; padding: 15px; }
-        .box { background: #1e293b; padding: 20px; border-radius: 15px; margin-bottom: 15px; border: 1px solid #334155; }
-        .balance-box { background: linear-gradient(135deg, #1e3a8a, #1e40af); text-align: center; padding: 30px; border: none; }
-        .rules-box { border-left: 5px solid #fbbf24; }
-        h1 { margin: 10px 0; color: #fbbf24; }
-        h3 { margin-bottom: 10px; color: #94a3b8; font-size: 16px; text-transform: uppercase; }
-        .rule-text { font-size: 14px; color: #cbd5e1; margin: 5px 0; }
-        input, select { width: 100%; padding: 12px; margin: 10px 0; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: white; box-sizing: border-box; }
-        .btn { width: 100%; padding: 14px; border: none; border-radius: 10px; color: white; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .btn-withdraw { background: #f59e0b; }
-        .btn-bind { background: #10b981; }
-        .btn-logout { background: #ef4444; margin-top: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #334155; font-size: 13px; }
-        th { color: #94a3b8; }
-        .support { display: flex; gap: 10px; margin-top: 15px; }
-        .support a { flex: 1; text-align: center; padding: 12px; text-decoration: none; color: white; border-radius: 10px; font-weight: bold; }
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background-color: #0f172a; 
+            color: white; 
+            margin: 0; 
+            padding: 20px; 
+            max-width: 480px; 
+            margin: auto; 
+        }
+
+        /* Gold Balance Card */
+        .atm-card {
+            background: linear-gradient(135deg, #d4af37, #b48608);
+            border-radius: 20px; padding: 25px; color: #fff;
+            box-shadow: 0 10px 20px rgba(212, 175, 55, 0.3); margin-bottom: 25px;
+            position: relative; overflow: hidden;
+        }
+        .atm-card::before { content: ''; position: absolute; top: -50px; right: -50px; width: 150px; height: 150px; background: rgba(255,255,255,0.1); border-radius: 50%; }
+
+        /* Green Linked Account Card */
+        .bank-card {
+            display: none; /* Initially hidden */
+            background: linear-gradient(135deg, #10b981, #059669);
+            border-radius: 20px; padding: 25px; color: #fff;
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3); margin-bottom: 25px;
+            position: relative; overflow: hidden; border: 1px solid #34d399;
+        }
+
+        .card-label { font-size: 11px; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px; }
+        .balance-amount { font-size: 32px; font-weight: 700; margin: 10px 0; }
+        .acc-num-display { font-size: 22px; font-weight: 600; margin: 15px 0; letter-spacing: 2px; font-family: monospace; }
+
+        /* General UI Elements */
+        .glass-box { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 20px; margin-bottom: 20px; }
+        h3 { margin: 0 0 15px 0; font-size: 16px; color: #94a3b8; display: flex; align-items: center; gap: 8px; }
+        
+        input, select { width: 100%; padding: 14px; background: #0f172a; border: 1px solid #334155; border-radius: 12px; color: white; outline: none; margin-bottom: 12px; box-sizing: border-box; }
+        
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; transition: 0.3s; }
+        .btn-withdraw { background: linear-gradient(to right, #f59e0b, #d97706); color: white; }
+        .btn-bind { background: linear-gradient(to right, #10b981, #059669); color: white; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .status-badge { font-size: 10px; padding: 4px 8px; border-radius: 20px; font-weight: bold; text-transform: uppercase; background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+        
+        .social-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+        .social-btn { text-decoration: none; color: white; padding: 12px; border-radius: 10px; text-align: center; font-weight: bold; font-size: 13px; }
     </style>
 </head>
 <body>
 
-    <div class="box balance-box">
-        <p style="margin:0; opacity:0.8;">Available Balance</p>
-        <h1 id="user-balance">Rs. 0.00</h1>
+    <div class="atm-card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span class="card-label">Available Balance</span>
+            <i class="fas fa-wallet" style="opacity:0.8;"></i>
+        </div>
+        <div class="balance-amount" id="user-balance">Rs. 0.00</div>
+        <div style="font-size:12px; opacity:0.7;">POWER STAR OFFICIAL WALLET</div>
     </div>
 
-    <div class="box rules-box">
-        <h3 style="color: #fbbf24;">Withdrawal Instructions</h3>
-        <p class="rule-text">• Minimum withdrawal limit is **Rs. 525**.</p>
-        <p class="rule-text">• **5% withdrawal fee** will be charged on every transaction.</p>
-        <p class="rule-text">• Requests are processed within 24 hours.</p>
+    <div class="glass-box">
+        <h3><i class="fas fa-arrow-circle-up"></i> Withdraw Funds</h3>
+        <div style="font-size:11px; color:#cbd5e1; background:rgba(251,191,36,0.1); padding:10px; border-left:3px solid #fbbf24; margin-bottom:15px; border-radius:4px;">
+            <i class="fas fa-info-circle"></i> Minimum: <b>Rs. 525</b> | Service Fee: <b>5%</b>
+        </div>
+        <input type="number" id="w-amount" placeholder="Enter Amount (PKR)">
+        <button class="btn btn-withdraw" id="btn-w" onclick="requestWithdraw()">
+            <i class="fas fa-paper-plane"></i> Submit Withdrawal
+        </button>
     </div>
 
-    <div class="box">
-        <h3>Withdraw Money</h3>
-        <input type="number" id="w-amount" placeholder="Min Amount 525">
-        <button class="btn btn-withdraw" id="btn-w" onclick="requestWithdraw()">Send Request</button>
-    </div>
-
-    <div class="box">
-        <h3>Bind Wallet (One-Time)</h3>
+    <div class="glass-box" id="binding-form">
+        <h3><i class="fas fa-link"></i> Link Payment Account</h3>
+        <p style="font-size: 11px; color: #94a3b8; margin-top: -10px; margin-bottom: 15px;">You must link your account before withdrawing.</p>
         <select id="w-type">
             <option value="Easypaisa">Easypaisa</option>
             <option value="JazzCash">JazzCash</option>
         </select>
-        <input type="text" id="w-title" placeholder="Account Name">
-        <input type="number" id="w-num" placeholder="Account Number">
-        <button class="btn btn-bind" id="btn-b" onclick="bindAccount()">Save Binding</button>
+        <input type="text" id="w-title" placeholder="Account Holder Name">
+        <input type="number" id="w-num" placeholder="Account Number (e.g. 0300...)">
+        <button class="btn btn-bind" id="btn-b" onclick="bindAccount()">
+            <i class="fas fa-save"></i> Save Account Details
+        </button>
     </div>
 
-    <div class="box">
-        <h3>Transaction History</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody id="history-data"></tbody>
-        </table>
+    <div class="bank-card" id="bound-card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span class="card-label" id="card-wallet-name">PAYMENT METHOD</span>
+            <i class="fas fa-check-circle" style="color: white; font-size: 20px;"></i>
+        </div>
+        <div class="acc-num-display" id="card-number">03XX XXXXXXX</div>
+        <div style="display:flex; justify-content:space-between; align-items:end;">
+            <div>
+                <span class="card-label">Account Title</span>
+                <div style="font-size:14px; text-transform:uppercase; font-weight:600;" id="card-title">USER NAME</div>
+            </div>
+            <div style="font-size: 10px; background: rgba(0,0,0,0.2); padding: 5px 10px; border-radius: 10px;">VERIFIED</div>
+        </div>
     </div>
 
-    <div class="support">
-        <a href="https://whatsapp.com/channel/0029VbBtlLd29752E8E2z10W" style="background:#25D366;">WhatsApp</a>
-        <a href="https://t.me/+wrV-LempJ39lY2Fk" style="background:#0088cc;">Telegram</a>
+    <div class="glass-box">
+        <h3><i class="fas fa-history"></i> Transaction History</h3>
+        <div id="history-data" style="font-size:13px;">Loading history...</div>
     </div>
-    
-    <button class="btn btn-logout" onclick="logoutUser()">Logout Account</button>
+
+    <div class="social-grid">
+        <a href="#" class="social-btn" style="background:#25D366;"><i class="fab fa-whatsapp"></i> Support</a>
+        <a href="#" class="social-btn" style="background:#0088cc;"><i class="fab fa-telegram"></i> Channel</a>
+    </div>
+    <button class="btn" style="background: #334155; color: white; margin-top: 15px;" onclick="logoutUser()">
+        <i class="fas fa-sign-out-alt"></i> Logout Securely
+    </button>
 
     <script>
         const API_URL = "https://sheetdb.io/api/v1/lcnr1ekbbyn58"; 
         const userObj = JSON.parse(localStorage.getItem('power_star_user'));
         const USER_ID = userObj ? userObj.number : null;
+        let isAccountBound = false; // Security Flag
 
         window.onload = function() {
             if(!USER_ID) {
                 window.location.href = "auth.html";
             } else {
                 fetchDashboardData();
+                checkBindingStatus(); 
             }
         };
 
-        async function fetchDashboardData() {
+        // Check if account is linked
+        async function checkBindingStatus() {
             try {
-                // Fetch Balance
-                const res = await fetch(`${API_URL}/search?number=${USER_ID}`);
+                const res = await fetch(`${API_URL}/search?number=${USER_ID}&row_type=BINDING`);
                 const data = await res.json();
-                if(data.length > 0) {
-                    document.getElementById('user-balance').innerText = "Rs. " + (data[0].balance || "0");
-                }
 
-                // Fetch History
-                const resH = await fetch(`${API_URL}/search?number=${USER_ID}&row_type=WITHDRAWAL`);
-                const logs = await resH.json();
-                const tbody = document.getElementById('history-data');
-                
-                if(logs.length > 0) {
-                    tbody.innerHTML = logs.map(row => `
-                        <tr>
-                            <td>${row.date}</td>
-                            <td>Rs. ${row.w_amount}</td>
-                            <td style="color:#fbbf24; font-weight:bold;">${row.status}</td>
-                        </tr>
-                    `).join('');
-                } else {
-                    tbody.innerHTML = "<tr><td colspan='3' style='text-align:center;'>No history found</td></tr>";
+                if(data.length > 0) {
+                    isAccountBound = true; // Unlock Withdrawal
+                    const info = data[0];
+                    document.getElementById('binding-form').style.display = 'none';
+                    document.getElementById('bound-card').style.display = 'block';
+                    document.getElementById('card-wallet-name').innerText = info.wallet_name.toUpperCase();
+                    document.getElementById('card-title').innerText = info.acc_title;
+                    document.getElementById('card-number').innerText = info.acc_number;
                 }
-            } catch(e) { console.log("Load Error"); }
+            } catch(e) { console.log("Binding Check Error"); }
         }
 
+        // Handle Withdrawal Request
         async function requestWithdraw() {
-            const amt = document.getElementById('w-amount').value;
-            const currentBal = parseFloat(document.getElementById('user-balance').innerText.replace('Rs. ', ''));
+            // STEP 1: SECURITY CHECK
+            if (!isAccountBound) {
+                alert("❌ ACCESS DENIED\n\nPlease link your Easypaisa or JazzCash account first using the form below.");
+                return;
+            }
 
-            // 525 Limit & English Alert
+            const amt = document.getElementById('w-amount').value;
+            const currentBalText = document.getElementById('user-balance').innerText.replace('Rs. ', '');
+            const currentBal = parseFloat(currentBalText);
+
             if(!amt || amt < 525) {
-                return alert("Minimum withdrawal amount is Rs. 525. Please enter a higher amount.");
+                alert("⚠️ INVALID AMOUNT\n\nMinimum withdrawal amount is Rs. 525.");
+                return;
             }
 
             if(amt > currentBal) {
-                return alert("Insufficient balance! Your current balance is lower than the requested amount.");
+                alert("⚠️ INSUFFICIENT BALANCE\n\nYou do not have enough funds for this withdrawal.");
+                return;
             }
 
             const btn = document.getElementById('btn-w');
-            btn.innerText = "Processing..."; btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...'; 
+            btn.disabled = true;
 
             try {
                 await fetch(API_URL, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        data: [{
-                            number: USER_ID,
-                            row_type: "WITHDRAWAL",
-                            w_amount: amt,
-                            status: "pending",
-                            date: new Date().toLocaleDateString()
-                        }]
+                    body: JSON.stringify({ 
+                        data: [{ 
+                            number: USER_ID, 
+                            row_type: "WITHDRAWAL", 
+                            w_amount: amt, 
+                            status: "pending", 
+                            date: new Date().toLocaleDateString() 
+                        }] 
                     })
                 });
-                alert("✅ Request Sent! 5% processing fee will be applied.");
+                alert("✅ SUCCESS\n\nYour withdrawal request has been submitted. Funds will be sent to your linked account within 24 hours."); 
                 location.reload();
-            } catch(e) { alert("Error!"); btn.disabled = false; }
+            } catch(e) { 
+                alert("Network Error. Please try again."); 
+                btn.disabled = false; 
+                btn.innerHTML = "Submit Withdrawal";
+            }
         }
 
+        // Handle Account Binding
         async function bindAccount() {
             const num = document.getElementById('w-num').value;
             const title = document.getElementById('w-title').value;
             const type = document.getElementById('w-type').value;
 
-            if(!num || !title) return alert("Please fill all bank details.");
+            if(!num || !title) {
+                alert("Please enter both Account Title and Number.");
+                return;
+            }
 
             const btn = document.getElementById('btn-b');
-            btn.innerText = "Binding..."; btn.disabled = true;
+            btn.innerText = "Linking..."; btn.disabled = true;
 
             try {
+                // Check if this account number is already used elsewhere
                 const check = await fetch(`${API_URL}/search?acc_number=${num}`);
                 const exists = await check.json();
-                if(exists.length > 0) {
-                    alert("❌ This account number is already bound to another user.");
-                    btn.disabled = false; return;
+                if(exists.length > 0) { 
+                    alert("❌ ERROR\n\nThis account number is already linked to another user."); 
+                    btn.disabled = false; btn.innerText = "Save Account Details";
+                    return; 
                 }
 
                 await fetch(API_URL, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        data: [{
-                            number: USER_ID,
-                            row_type: "BINDING",
-                            wallet_name: type,
-                            acc_title: title,
-                            acc_number: num,
-                            date: new Date().toLocaleDateString()
-                        }]
+                    body: JSON.stringify({ 
+                        data: [{ 
+                            number: USER_ID, 
+                            row_type: "BINDING", 
+                            wallet_name: type, 
+                            acc_title: title, 
+                            acc_number: num, 
+                            date: new Date().toLocaleDateString() 
+                        }] 
                     })
                 });
-                alert("✅ Wallet Bound Successfully!");
+                alert("✅ ACCOUNT LINKED\n\nYour payment details have been saved successfully."); 
                 location.reload();
-            } catch(e) { alert("Error!"); btn.disabled = false; }
+            } catch(e) { alert("Error saving account details."); btn.disabled = false; }
         }
 
-        function logoutUser() {
-            localStorage.clear();
-            window.location.href = "auth.html";
+        // Fetch Balance and Transactions
+        async function fetchDashboardData() {
+            try {
+                const res = await fetch(`${API_URL}/search?number=${USER_ID}`);
+                const data = await res.json();
+                
+                // Find main user row for balance
+                const mainUser = data.find(u => !u.row_type);
+                if(mainUser) {
+                    document.getElementById('user-balance').innerText = "Rs. " + (mainUser.balance || "0");
+                }
+
+                // History
+                const logs = data.filter(row => row.row_type === "WITHDRAWAL");
+                const container = document.getElementById('history-data');
+                
+                if(logs.length > 0) {
+                    container.innerHTML = logs.reverse().map(row => `
+                        <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid #334155;">
+                            <div>
+                                <div style="font-weight:bold;">Rs. ${row.w_amount}</div>
+                                <div style="font-size:11px; color:#94a3b8;">${row.date}</div>
+                            </div>
+                            <span class="status-badge">${row.status}</span>
+                        </div>
+                    `).join('');
+                } else { 
+                    container.innerHTML = "<div style='text-align:center; padding:10px; color:#64748b;'>No transaction history found.</div>"; 
+                }
+            } catch(e) { console.log("Load Error"); }
+        }
+
+        function logoutUser() { 
+            localStorage.clear(); 
+            window.location.href = "auth.html"; 
         }
     </script>
 </body>
