@@ -6,18 +6,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body { background: #0f172a; color: white; font-family: 'Poppins', sans-serif; margin: 0; padding-bottom: 80px; }
-        .header { background: linear-gradient(135deg, #f1c40f, #d4ac0d); color: black; padding: 30px 20px; border-radius: 0 0 30px 30px; text-align: center; }
-        .balance { font-size: 35px; font-weight: 800; }
+        .header { background: linear-gradient(135deg, #f1c40f, #d4ac0d); color: black; padding: 40px 20px; border-radius: 0 0 35px 35px; text-align: center; }
+        .balance-box { font-size: 38px; font-weight: 800; margin: 10px 0; }
         .nav { position: fixed; bottom: 0; width: 100%; background: #1e293b; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #f1c40f; }
         .nav a { color: #94a3b8; text-decoration: none; font-size: 12px; text-align: center; }
-        .nav a.active { color: #f1c40f; }
+        .nav a.active { color: #f1c40f; font-weight: 700; }
     </style>
 </head>
 <body>
     <div class="header">
-        <h3 id="u-name">Welcome</h3>
-        <p>Available Balance</p>
-        <div class="balance" id="u-balance">Rs. 0.00</div>
+        <h3 id="u-name">Loading...</h3>
+        <p style="margin:0; opacity:0.8; font-size:12px;">AVAILABLE BALANCE</p>
+        <div class="balance-box" id="u-balance">Rs. 0.00</div>
     </div>
 
     <div class="nav">
@@ -28,23 +28,31 @@
     </div>
 
     <script>
-        const API = "https://sheetdb.io/api/v1/vyntcjclg5905";
+        const API = "https://sheetdb.io/api/v1/5lqvbtiym7agr";
+        
         window.onload = async function() {
-            const stored = localStorage.getItem('power_star_user');
-            if(!stored) { window.location.href="auth.html"; return; }
-            const user = JSON.parse(stored);
+            const user = JSON.parse(localStorage.getItem('power_star_user'));
+            if(!user) { window.location.href="auth.html"; return; }
 
             try {
-                const res = await fetch(`${API}/search?number=${user.number}`);
+                // Real-time Status Sync (Block Check)
+                const res = await fetch(`${API}/search?number=${user.number}&sheet=Users`);
                 const data = await res.json();
                 if(data.length > 0) {
-                    if(data[0].status === 'blocked') { 
-                        localStorage.clear(); window.location.href="auth.html"; 
+                    const fresh = data[0];
+                    if(fresh.status === 'blocked') {
+                        localStorage.clear(); alert("Account Blocked!"); window.location.href="auth.html";
+                    } else {
+                        document.getElementById('u-name').innerText = "Hi, " + fresh.name;
+                        document.getElementById('u-balance').innerText = "Rs. " + parseFloat(fresh.balance).toFixed(2);
+                        localStorage.setItem('power_star_user', JSON.stringify(fresh));
                     }
-                    document.getElementById('u-name').innerText = "Hello, " + data[0].name;
-                    document.getElementById('u-balance').innerText = "Rs. " + data[0].balance;
                 }
-            } catch(e) { console.log("Sync error"); }
+            } catch(e) { 
+                // Offline fallback
+                document.getElementById('u-name').innerText = "Hi, " + user.name;
+                document.getElementById('u-balance').innerText = "Rs. " + user.balance;
+            }
         }
     </script>
 </body>
