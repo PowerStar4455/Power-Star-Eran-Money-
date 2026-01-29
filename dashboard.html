@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Power Star Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body { background: #0f172a; color: white; font-family: 'Poppins', sans-serif; margin: 0; padding-bottom: 80px; }
@@ -15,8 +15,8 @@
 </head>
 <body>
     <div class="header">
-        <h3 id="u-name">Loading...</h3>
-        <p style="margin:0; opacity:0.8; font-size:12px;">AVAILABLE BALANCE</p>
+        <h3 id="u-name">Welcome</h3>
+        <p style="margin:0; opacity:0.8; font-size:12px;">TOTAL BALANCE</p>
         <div class="balance-box" id="u-balance">Rs. 0.00</div>
     </div>
 
@@ -28,24 +28,21 @@
     </div>
 
     <script>
-        const API = "https://sheetdb.io/api/v1/5lqvbtiym7agr";
-        
+        const API = "https://sheetdb.io/api/v1/lcnr1ekbbyn58";
+        const SHEET = "Sheet1";
+
         window.onload = async function() {
             const user = JSON.parse(localStorage.getItem('power_star_user'));
             if(!user) { window.location.href="auth.html"; return; }
 
             try {
-                const res = await fetch(`${API}/search?number=${user.number}&sheet=Users`);
+                const res = await fetch(`${API}/search?number=${user.number}&sheet=${SHEET}`);
                 const data = await res.json();
                 if(data.length > 0) {
                     const fresh = data[0];
-                    if(fresh.status === 'blocked') {
-                        localStorage.clear(); alert("Account Blocked!"); window.location.href="auth.html";
-                    } else {
-                        document.getElementById('u-name').innerText = "Hi, " + fresh.name;
-                        document.getElementById('u-balance').innerText = "Rs. " + parseFloat(fresh.balance).toFixed(2);
-                        localStorage.setItem('power_star_user', JSON.stringify(fresh));
-                    }
+                    document.getElementById('u-name').innerText = "Hi, " + fresh.name;
+                    document.getElementById('u-balance').innerText = "Rs. " + parseFloat(fresh.balance).toFixed(2);
+                    localStorage.setItem('power_star_user', JSON.stringify(fresh));
                 }
             } catch(e) { 
                 document.getElementById('u-name').innerText = "Hi, " + user.name;
