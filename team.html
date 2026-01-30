@@ -8,18 +8,22 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: #0f172a; color: white; font-family: sans-serif; padding: 15px; max-width: 480px; margin: auto; }
+        body { background: #0f172a; color: white; font-family: sans-serif; padding: 15px; max-width: 480px; margin: auto; padding-bottom: 80px; }
+        h2 { margin-bottom: 20px; font-size: 22px; }
         .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0; }
-        .stat-card { background: #1e293b; padding: 15px 5px; border-radius: 15px; text-align: center; border-bottom: 3px solid #fbbf24; }
+        .stat-card { background: #1e293b; padding: 15px 5px; border-radius: 15px; text-align: center; border-bottom: 3px solid #fbbf24; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
         .stat-card h3 { font-size: 14px; color: #fbbf24; }
-        .stat-card p { font-size: 9px; color: #94a3b8; margin-top: 5px; }
-        .btn-share { width: 100%; padding: 15px; background: #fbbf24; color: black; font-weight: bold; border-radius: 15px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .team-box { background: #1e293b; border-radius: 20px; padding: 20px; margin-top: 20px; min-height: 200px; }
-        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; z-index: 100; }
+        .stat-card p { font-size: 9px; color: #94a3b8; margin-top: 5px; font-weight: bold; }
+        .btn-share { width: 100%; padding: 16px; background: #fbbf24; color: black; font-weight: bold; border-radius: 15px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 15px; }
+        .team-box { background: #1e293b; border-radius: 20px; padding: 10px 20px; margin-top: 20px; min-height: 250px; }
+        .sync-status { font-size: 10px; color: #4ade80; text-align: center; margin-top: 10px; opacity: 0.8; }
+        
+        /* Bottom Sheet UI */
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; z-index: 100; }
         .sheet { position: fixed; bottom: -100%; left: 0; width: 100%; background: #1e293b; border-radius: 25px 25px 0 0; padding: 25px; z-index: 101; transition: 0.4s; border-top: 2px solid #fbbf24; }
         .sheet.active { bottom: 0; }
         .options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 20px; text-align: center; }
-        .opt-icon { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 5px; color: white; font-size: 20px; }
+        .opt-icon { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 5px; color: white; font-size: 20px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -28,20 +32,21 @@
     <div class="stat-grid">
         <div class="stat-card"><h3 id="t-count">0</h3><p>TEAM SIZE</p></div>
         <div class="stat-card"><h3 id="t-bonus">Rs. 0</h3><p>JOIN BONUS</p></div>
-        <div class="stat-card"><h3 id="t-comm">Rs. 0</h3><p>5% LIFETIME</p></div>
+        <div class="stat-card"><h3 id="t-comm">Rs. 0.00</h3><p>5% LIFETIME</p></div>
     </div>
 
     <button class="btn-share" onclick="toggleSheet(true)"><i class="fas fa-share-alt"></i> INVITE FRIENDS</button>
+    <p id="sync-msg" class="sync-status">Checking for new commissions...</p>
 
     <div class="team-box">
-        <div id="team-data"><p style="text-align:center; color:#64748b;">Loading team...</p></div>
+        <div id="team-data"><p style="text-align:center; color:#64748b; padding-top:50px;">Loading team members...</p></div>
     </div>
 
     <div class="overlay" id="overlay" onclick="toggleSheet(false)"></div>
     <div class="sheet" id="sheet">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h3>Share via</h3>
-            <i class="fas fa-times" onclick="toggleSheet(false)" style="cursor:pointer;"></i>
+            <h3>Invite Friends</h3>
+            <i class="fas fa-times" onclick="toggleSheet(false)" style="cursor:pointer; font-size:20px;"></i>
         </div>
         <div class="options">
             <div onclick="copyLink()"><div class="opt-icon" style="background:#475569;"><i class="fas fa-link"></i></div><span style="font-size:10px;">Copy</span></div>
@@ -55,56 +60,90 @@
         const API = "https://sheetdb.io/api/v1/lcnr1ekbbyn58";
         const userData = localStorage.getItem('power_star_user');
         const user = userData ? JSON.parse(userData) : null;
-        
-        // FIX: Pehle user_id dekho, agar nahi hai (old user) to number use karo
         const MY_ID = user ? (user.user_id || user.number) : null;
 
         window.onload = () => { 
-            // Strict check removed to prevent loops
-            if(!user || !MY_ID) {
-                window.location.href="auth.html"; 
-            } else {
-                loadTeam(); 
-            }
+            if(!user || !MY_ID) { window.location.href="auth.html"; } 
+            else { loadTeamAndSync(); }
         };
 
-        async function loadTeam() {
+        async function loadTeamAndSync() {
             try {
-                // Search in "referral" column using MY_ID (AQ-ID or Number)
+                // 1. Fetch direct referrals
                 const res = await fetch(`${API}/search?referral=${MY_ID}`);
-                const data = await res.json();
+                const members = await res.json();
                 
-                let totalBal = 0;
-                if(data && data.length >= 0) {
-                    data.forEach(m => {
-                        let bal = parseFloat(m.balance);
-                        totalBal += isNaN(bal) ? 0 : bal;
-                    });
-                    
-                    document.getElementById('t-count').innerText = data.length;
-                    document.getElementById('t-bonus').innerText = "Rs. " + (data.length * 50);
-                    document.getElementById('t-comm').innerText = "Rs. " + (totalBal * 0.05).toFixed(2);
-                    
-                    if(data.length > 0) {
-                        document.getElementById('team-data').innerHTML = data.map(m => `
-                            <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid #334155; align-items:center;">
-                                <div>
-                                    <span style="font-size:14px; font-weight:bold;">${m.name}</span><br>
-                                    <small style="color:#64748b;">ID: ${m.user_id || m.number}</small>
-                                </div>
-                                <div style="text-align:right;">
-                                    <span style="font-size:12px; color:#fbbf24;">Rs. ${( (parseFloat(m.balance)||0) * 0.05).toFixed(2)}</span><br>
-                                    <small style="color:#94a3b8; font-size:9px;">5% Share</small>
-                                </div>
-                            </div>
-                        `).join('');
+                let currentTotalComm = 0;
+
+                if(members && Array.isArray(members)) {
+                    document.getElementById('t-count').innerText = members.length;
+                    document.getElementById('t-bonus').innerText = "Rs. " + (members.length * 50);
+
+                    if(members.length > 0) {
+                        const listHTML = members.map(m => {
+                            const mBalance = parseFloat(m.balance) || 0;
+                            const mComm = (mBalance * 0.05); 
+                            currentTotalComm += mComm;
+
+                            return `
+                                <div style="display:flex; justify-content:space-between; padding:15px 0; border-bottom:1px solid rgba(255,255,255,0.05); align-items:center;">
+                                    <div>
+                                        <span style="font-size:14px; font-weight:bold;">${m.name}</span><br>
+                                        <small style="color:#64748b;">ID: ${m.user_id || m.number}</small>
+                                    </div>
+                                    <div style="text-align:right;">
+                                        <span style="font-size:12px; color:#fbbf24; font-weight:bold;">Rs. ${mComm.toFixed(2)}</span><br>
+                                        <small style="color:#94a3b8; font-size:9px;">5% Commission</small>
+                                    </div>
+                                </div>`;
+                        }).join('');
+
+                        document.getElementById('team-data').innerHTML = listHTML;
+                        document.getElementById('t-comm').innerText = "Rs. " + currentTotalComm.toFixed(2);
+                        
+                        // 2. 🛡️ Run Anti-Cheat Sync
+                        await secureSync(currentTotalComm);
                     } else {
-                        document.getElementById('team-data').innerHTML = `<p style="text-align:center; color:#64748b; margin-top:20px;">No team members yet.</p>`;
+                        document.getElementById('team-data').innerHTML = `<p style="text-align:center; color:#64748b; padding-top:50px;">No team members found.</p>`;
+                        document.getElementById('sync-msg').innerText = "Build your team to earn!";
                     }
                 }
-            } catch(e) { 
-                document.getElementById('team-data').innerHTML = `<p style="text-align:center; color:red;">Connection Error</p>`;
-            }
+            } catch(e) { document.getElementById('team-data').innerHTML = "Connection Error"; }
+        }
+
+        async function secureSync(totalCalculatedComm) {
+            try {
+                const res = await fetch(`${API}/search?number=${user.number}`);
+                const data = await res.json();
+                
+                if(data.length > 0) {
+                    const liveUser = data[0];
+                    const alreadyClaimed = parseFloat(liveUser.claimed_comm) || 0;
+                    const currentBalance = parseFloat(liveUser.balance) || 0;
+
+                    // Anti-Cheat: Only add if new earnings > previously claimed
+                    if(totalCalculatedComm > alreadyClaimed) {
+                        const pendingAmount = totalCalculatedComm - alreadyClaimed;
+                        const newBalance = currentBalance + pendingAmount;
+
+                        await fetch(`${API}/number/${user.number}`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ 
+                                balance: newBalance,
+                                claimed_comm: totalCalculatedComm 
+                            })
+                        });
+                        
+                        liveUser.balance = newBalance;
+                        liveUser.claimed_comm = totalCalculatedComm;
+                        localStorage.setItem('power_star_user', JSON.stringify(liveUser));
+                        document.getElementById('sync-msg').innerText = "✅ Commission Updated!";
+                    } else {
+                        document.getElementById('sync-msg').innerText = "✅ Balance is up to date";
+                    }
+                }
+            } catch(err) { document.getElementById('sync-msg').innerText = "Sync delayed..."; }
         }
 
         function toggleSheet(s) { 
@@ -113,23 +152,17 @@
         }
 
         function getLink() { 
-            return window.location.origin + window.location.pathname.replace('team.html', 'auth.html') + "?ref=" + MY_ID; 
+            const loc = window.location;
+            return `${loc.protocol}//${loc.host}${loc.pathname.replace('team.html', 'auth.html')}?ref=${MY_ID}`;
         }
 
         function copyLink() { 
-            const link = getLink();
-            const tempInput = document.createElement("input");
-            tempInput.value = link;
-            document.body.appendChild(tempInput);
-            tempInput.select();
-            document.execCommand("copy");
-            document.body.removeChild(tempInput);
-            
-            Swal.fire({ text: "Referral Link Copied!", icon: "success", timer: 1000, showConfirmButton: false });
+            navigator.clipboard.writeText(getLink());
+            Swal.fire({ text: "Link Copied!", icon: "success", timer: 1000, showConfirmButton: false });
             toggleSheet(false);
         }
 
-        function shareWA() { window.open(`https://wa.me/?text=Join Power Star! %0A${getLink()}`); }
+        function shareWA() { window.open(`https://wa.me/?text=Join Power Star & Earn! %0A${getLink()}`); }
         function shareTG() { window.open(`https://t.me/share/url?url=${getLink()}`); }
         function shareMore() { if(navigator.share) navigator.share({title:'Power Star', url:getLink()}); }
     </script>
