@@ -6,7 +6,7 @@
     <title>Power Star Access</title>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        /* AAPKA ORIGINAL CSS - 100% UNTOUCHED */
+        /* 💯 SAME ORIGINAL CSS */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { background: #0f172a; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; }
         .auth-box { background: #1e293b; padding: 25px; border-radius: 20px; width: 100%; max-width: 380px; text-align: center; border: 1px solid #fbbf24; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
@@ -15,7 +15,10 @@
         button { width: 100%; padding: 15px; background: #fbbf24; color: black; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; margin-top: 10px; font-size: 16px; }
         .t-box { display: flex; align-items: flex-start; gap: 8px; text-align: left; margin: 12px 0; font-size: 11px; color: #94a3b8; line-height: 1.4; }
         .t-box input { width: 16px; height: 16px; margin-top: 2px; flex-shrink: 0; }
-        .t-box span { color: #fbbf24; text-decoration: underline; cursor: pointer; }
+        
+        /* Href Link Style */
+        .t-box a { color: #fbbf24; text-decoration: underline; cursor: pointer; }
+        
         .hidden { display: none; }
         .toggle-txt { margin-top: 20px; cursor: pointer; color: #94a3b8; font-size: 14px; }
         .toggle-txt span { color: #fbbf24; font-weight: bold; }
@@ -41,7 +44,7 @@
             
             <div class="t-box">
                 <input type="checkbox" id="t-check">
-                <label for="t-check">I agree to the <span onclick="showTerms()">Terms & Conditions</span> and Privacy Policy of Power Star.</label>
+                <label for="t-check">I agree to the <a href="terms.html">Terms & Conditions</a> and Privacy Policy.</label>
             </div>
 
             <button id="r-btn" onclick="doRegister()">REGISTER</button>
@@ -56,16 +59,6 @@
         function msg(t, icon) { Swal.fire({ text: t, icon: icon, confirmButtonColor: '#fbbf24' }); }
         function makeAQ() { return "AQ" + Math.floor(1000 + Math.random() * 9000); }
         function toggle() { document.getElementById('reg-form').classList.toggle('hidden'); document.getElementById('log-form').classList.toggle('hidden'); }
-
-        // AAPKA ORIGINAL TERMS POPUP
-        function showTerms() {
-            Swal.fire({
-                title: 'Terms & Conditions',
-                text: 'One account per device. Any violation leads to permanent ban. Withdrawals take 24-48 hours.',
-                icon: 'info',
-                confirmButtonColor: '#fbbf24'
-            });
-        }
 
         async function doLogin() {
             let num = document.getElementById('l-num').value.trim();
@@ -83,7 +76,6 @@
                     if(user.device_id && user.device_id !== DEVICE) msg("❌ Locked to another device!", "error");
                     else { 
                         localStorage.setItem('power_star_user', JSON.stringify(user)); 
-                        localStorage.setItem('login_timestamp', new Date().getTime());
                         window.location.href = "dashboard.html"; 
                     }
                 } else msg("❌ Invalid Credentials", "error");
@@ -98,12 +90,11 @@
             const ref = document.getElementById('r-ref').value.trim();
             const isChecked = document.getElementById('t-check').checked;
 
-            if(!name || !num || !pass) return msg("All fields are required", "info");
-            if(!isChecked) return msg("Please accept Terms & Conditions to proceed", "warning");
+            if(!name || !num || !pass || !isChecked) return msg("Fill all fields & accept Terms", "info");
             if (num.startsWith('0')) num = num.substring(1);
             
             const btn = document.getElementById('r-btn');
-            btn.innerText = "Creating..."; btn.disabled = true;
+            btn.innerText = "Processing..."; btn.disabled = true;
 
             try {
                 const checkRes = await fetch(API);
@@ -112,16 +103,23 @@
                     msg("❌ Device Error: One Account only!", "error"); 
                 } else {
                     const newAQ = makeAQ();
-                    // DATA MAPPING FIXED FOR COLUMNS A-H
+                    // 💯 MASTER MAPPING (A-I)
                     const res = await fetch(API, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ data: [{ 
-                            name: name, number: num, password: pass, referral: ref, 
-                            balance: (ref ? 50 : 0), device_id: DEVICE, 
-                            user_id: newAQ, status: "active" 
+                            name: name,           // A
+                            number: num,         // B
+                            password: pass,      // C
+                            referral: ref,       // D
+                            balance: (ref ? 50 : 0), // E
+                            device_id: DEVICE,   // F
+                            user_id: newAQ,      // G
+                            status: "active",    // H
+                            date: new Date().toLocaleDateString() // I
                         }] })
                     });
+                    
                     if(res.ok) { 
                         Swal.fire({ title: "Welcome!", text: "ID: " + newAQ, icon: "success" }).then(() => { location.reload(); });
                     }
