@@ -8,36 +8,29 @@
     <style>
         /* CSS LOCK SYSTEM */
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        
         body { 
             background-color: #0f172a; 
             color: white; 
-            font-family: 'Segoe UI', Roboto, sans-serif; 
+            font-family: 'Poppins', sans-serif; 
             padding: 15px; 
             width: 100vw; 
-            overflow-x: hidden; /* Screen baahar nahi nikly gi */
+            overflow-x: hidden; 
         }
 
         .header { 
             display: flex; 
             align-items: center; 
             gap: 15px; 
-            padding: 10px 0; 
+            padding-bottom: 15px; 
             border-bottom: 1px solid #334155; 
             margin-bottom: 20px;
-            width: 100%;
         }
-
         .header h2 { font-size: 18px; color: #fbbf24; }
+        .header i { cursor: pointer; font-size: 20px; }
 
-        #history-list { 
-            width: 100%; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 10px; 
-        }
+        #history-list { width: 100%; display: flex; flex-direction: column; gap: 12px; }
 
-        /* Container Lock */
+        /* Card Lock Design */
         .history-item { 
             background: #1e293b; 
             border-radius: 12px; 
@@ -46,16 +39,10 @@
             justify-content: space-between; 
             align-items: center;
             border-left: 4px solid #fbbf24; 
-            width: 100%; /* Boundary Lock */
-            min-height: 65px;
+            width: 100%;
         }
 
-        .info { 
-            flex: 1; 
-            min-width: 0; /* Text truncation ke liye zaroori hai */
-            padding-right: 8px; 
-        }
-
+        .info { flex: 1; min-width: 0; padding-right: 10px; }
         .info b { 
             font-size: 13px; 
             text-transform: uppercase; 
@@ -63,79 +50,88 @@
             color: #f8fafc;
             white-space: nowrap; 
             overflow: hidden; 
-            text-overflow: ellipsis; /* Lamba text (...) ban jaye ga */
+            text-overflow: ellipsis; /* Lamba text baahar nahi jayega */
         }
-
         .info small { color: #94a3b8; font-size: 10px; display: block; margin-top: 2px; }
 
-        .amount-box { 
-            text-align: right; 
-            flex-shrink: 0; /* Amount box kabhi chota nahi hoga */
-            max-width: 120px;
+        .amount-box { text-align: right; flex-shrink: 0; }
+        .amt { font-weight: 700; font-size: 14px; display: block; }
+        .status { 
+            font-size: 9px; 
+            font-weight: bold; 
+            text-transform: uppercase; 
+            margin-top: 4px; 
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
         }
 
-        .amt { font-weight: 800; font-size: 14px; display: block; }
-        .status { font-size: 9px; font-weight: bold; text-transform: uppercase; margin-top: 4px; display: block; }
-
-        /* Color Management */
+        /* Status Colors */
+        .bg-pending { background: rgba(251, 191, 36, 0.1); color: #fbbf24; }
+        .bg-success { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+        .bg-failed { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
         .text-green { color: #10b981; }
         .text-red { color: #ef4444; }
-        .text-gold { color: #fbbf24; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <i class="fas fa-arrow-left" onclick="history.back()"></i>
-        <h2>History</h2>
+        <i class="fas fa-arrow-left" onclick="window.location.href='wallet.html'"></i>
+        <h2>Transaction History</h2>
     </div>
 
     <div id="history-list">
-        <p style="text-align: center; color: #94a3b8; padding-top: 20px;">Loading Records...</p>
+        <p style="text-align: center; color: #94a3b8; font-size: 12px; margin-top: 50px;">
+            <i class="fas fa-spinner fa-spin"></i> Fetching records...
+        </p>
     </div>
 
 <script>
     async function loadHistory() {
         const user = JSON.parse(localStorage.getItem('power_star_user'));
-        if (!user) return;
+        if (!user) { window.location.href = 'auth.html'; return; }
+
+        const API = "https://sheetdb.io/api/v1/lcnr1ekbbyn58";
 
         try {
-            const res = await fetch(`https://sheetdb.io/api/v1/lcnr1ekbbyn58/search?number=${user.number}`);
+            const res = await fetch(`${API}/search?number=${user.number}`);
             const data = await res.json();
             
-            // Filter non-binding rows
+            // Filter out the main user row (only keep history/binding logs)
             const logs = data.filter(x => x.row_type && x.row_type !== 'BINDING');
             const list = document.getElementById('history-list');
 
             if (logs.length === 0) {
-                list.innerHTML = "<p style='text-align:center; color:#475569; font-size:12px;'>No records found.</p>";
+                list.innerHTML = "<p style='text-align:center; color:#64748b; font-size:12px; margin-top:50px;'>No transactions found.</p>";
                 return;
             }
 
-            list.innerHTML = logs.reverse().map(i => {
-                const isW = i.row_type === 'WITHDRAWAL';
-                const s = i.status.toLowerCase();
-                const sColor = s === 'pending' ? 'text-gold' : (s === 'approved' || s === 'success' ? 'text-green' : 'text-red');
-
+            // Render logs (Newest first)
+            list.innerHTML = logs.reverse().map(item => {
+                const isWithdraw = item.row_type === 'WITHDRAWAL';
+                const statusClass = item.status === 'pending' ? 'bg-pending' : (item.status === 'approved' || item.status === 'success' ? 'bg-success' : 'bg-failed');
+                
                 return `
                     <div class="history-item">
                         <div class="info">
-                            <b>${i.row_type.replace('_', ' ')}</b>
-                            <small><i class="far fa-calendar-alt"></i> ${i.date || 'Just now'}</small>
+                            <b>${item.row_type.replace('_', ' ')}</b>
+                            <small><i class="far fa-calendar-alt"></i> ${item.date || 'Processing'}</small>
                         </div>
                         <div class="amount-box">
-                            <span class="amt ${isW ? 'text-red' : 'text-green'}">
-                                ${isW ? '-' : '+'} Rs. ${i.w_amount}
+                            <span class="amt ${isWithdraw ? 'text-red' : 'text-green'}">
+                                ${isWithdraw ? '-' : '+'} Rs. ${item.w_amount}
                             </span>
-                            <span class="status ${sColor}">${i.status}</span>
+                            <span class="status ${statusClass}">${item.status}</span>
                         </div>
                     </div>
                 `;
             }).join('');
         } catch (e) {
-            document.getElementById('history-list').innerHTML = "Connection Error!";
+            document.getElementById('history-list').innerHTML = "<p style='text-align:center; color:red;'>Connection Error!</p>";
         }
     }
+
     window.onload = loadHistory;
 </script>
 </body>
