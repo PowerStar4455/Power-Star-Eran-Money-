@@ -3,79 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Power Star - Dashboard</title>
+    <title>Power Star</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background: #0f172a; color: white; font-family: 'Poppins', sans-serif; margin: 0; padding-bottom: 90px; overflow-x: hidden; }
+        body { background: #0f172a; color: white; font-family: 'Poppins', sans-serif; margin: 0; padding-bottom: 90px; }
         
-        /* --- ATM HEADER --- */
-        .header-container { padding: 20px; }
+        /* --- HEADER CARD (Matching Screenshot 2) --- */
+        .header-container { padding: 15px; }
         .header-card { 
-            background: linear-gradient(135deg, #f1c40f 0%, #d4ac0d 100%); 
-            color: black; padding: 25px 20px; border-radius: 25px; text-align: center; 
-            box-shadow: 0 15px 35px rgba(241, 196, 15, 0.3); position: relative;
+            background: #f1c40f; color: black; padding: 30px 20px; 
+            border-radius: 40px; text-align: center; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            position: relative;
         }
-        .top-icons { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .u-id { background: rgba(0,0,0,0.08); padding: 6px 14px; border-radius: 50px; font-size: 11px; font-weight: bold; cursor: pointer; border: 1px solid rgba(0,0,0,0.1); display: flex; align-items: center; gap: 5px; }
-        .smart-hist-btn { background: #0f172a; color: #f1c40f; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; }
-        .balance-box { font-size: 40px; font-weight: 800; margin: 5px 0; font-family: 'Courier New', monospace; }
 
-        /* --- SECRET ADMIN BUTTON --- */
-        #admin-ctrl { display: none; padding: 0 20px; margin: 15px 0; }
-        .admin-btn { width: 100%; padding: 15px; background: #dc2626; color: white; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; box-shadow: 0 8px 20px rgba(220, 38, 38, 0.3); }
+        .top-row { display: flex; justify-content: space-between; align-items: flex-start; }
+        .u-id { background: rgba(0,0,0,0.08); padding: 8px 12px; border-radius: 50px; font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+        .hist-btn { background: #1e293b; color: #f1c40f; width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; }
+
+        .balance-box { font-size: 48px; font-weight: 800; margin: 10px 0; font-family: 'Courier New', monospace; }
+
+        /* --- ADMIN BUTTON (FORCE VISIBLE) --- */
+        #admin-ctrl { 
+            display: none; /* JS will show this */
+            padding: 0 20px; 
+            margin: 20px 0; 
+        }
+        .admin-btn { 
+            width: 100%; padding: 16px; background: #ef4444; color: white; 
+            border: none; border-radius: 20px; font-weight: bold; 
+            box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4); 
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
 
         /* --- ANNOUNCEMENT CARD --- */
-        .marketing-container { padding: 0 20px; }
-        .marketing-card {
-            background: #1e293b; border-radius: 25px;
-            border: 1px solid rgba(241, 196, 15, 0.2); min-height: 160px;
+        .ann-container { padding: 0 15px; }
+        .ann-card {
+            background: #1e293b; border-radius: 35px;
+            border: 1px solid rgba(255,255,255,0.05); min-height: 180px;
             display: flex; align-items: center; justify-content: center;
-            overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            overflow: hidden; padding: 20px; box-sizing: border-box;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
         }
-        #ann-img { width: 100%; height: 100%; object-fit: cover; display: none; }
-        #ann-msg { padding: 25px; text-align: center; color: #cbd5e1; font-size: 14px; line-height: 1.6; }
+        #ann-img { width: 100%; border-radius: 20px; display: none; }
 
         /* --- NAVIGATION --- */
-        .nav { position: fixed; bottom: 0; width: 100%; background: #1e293b; display: flex; justify-content: space-around; padding: 12px 0; border-top: 2px solid #f1c40f; z-index: 1000; }
+        .nav { position: fixed; bottom: 0; width: 100%; background: #1e293b; display: flex; justify-content: space-around; padding: 15px 0; border-top: 2px solid #f1c40f; z-index: 1000; }
         .nav a { color: #94a3b8; text-decoration: none; font-size: 11px; text-align: center; flex: 1; }
-        .nav a i { font-size: 20px; margin-bottom: 4px; display: block; }
-        .nav a.active { color: #f1c40f; font-weight: 700; }
-
-        /* --- SIDE PANEL --- */
-        .side-panel { position: fixed; top: 0; right: -100%; width: 100%; height: 100%; background: #0f172a; z-index: 2000; transition: 0.4s ease-in-out; padding: 25px; box-sizing: border-box; }
-        .side-panel.active { right: 0; }
-        .h-item { background: #1e293b; padding: 18px; border-radius: 20px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid #f1c40f; }
+        .nav a.active { color: #f1c40f; font-weight: bold; }
+        .nav i { font-size: 22px; display: block; margin-bottom: 5px; }
     </style>
 </head>
 <body>
 
     <div class="header-container">
         <div class="header-card">
-            <div class="top-icons">
-                <div class="u-id" onclick="copyID()">
-                    ID: <span id="u-num">0000</span> <i class="far fa-copy"></i>
-                </div>
-                <div class="smart-hist-btn" onclick="toggleHist(true)">
-                    <i class="fas fa-history"></i>
-                </div>
+            <div class="top-row">
+                <div class="u-id" onclick="copyID()">ID: <span id="u-num">0000</span> <i class="far fa-copy"></i></div>
+                <div class="hist-btn" onclick="toggleHist(true)"><i class="fas fa-history"></i></div>
             </div>
-            <h3 id="u-name" style="margin:0;">Welcome User</h3>
-            <p style="font-size: 10px; font-weight:bold; letter-spacing: 2px; margin-top:10px; opacity: 0.8;">AVAILABLE BALANCE</p>
-            <div class="balance-box" id="u-balance">Rs. 0.00</div>
+            <h2 id="u-name" style="margin:15px 0 0;">Hi, User</h2>
+            <p style="font-size: 11px; letter-spacing: 1px; margin-top:5px; opacity:0.7;">AVAILABLE BALANCE</p>
+            <div class="balance-box">Rs. <span id="u-balance">0.00</span></div>
         </div>
     </div>
 
     <div id="admin-ctrl">
         <button class="admin-btn" onclick="window.location.href='admin_control.html'">
-            <i class="fas fa-user-shield"></i> MASTER CONTROL PANEL
+            <i class="fas fa-user-shield"></i> OPEN ADMIN CONTROL
         </button>
     </div>
 
-    <div class="marketing-container">
-        <div class="marketing-card">
+    <div class="ann-container">
+        <div class="ann-card">
             <img id="ann-img" src="">
-            <div id="ann-msg">📢 Official announcements will appear here.</div>
+            <div id="ann-msg" style="text-align:center; color:#94a3b8;">
+                <i class="fas fa-bullhorn" style="font-size:24px; margin-bottom:10px;"></i><br>
+                Official announcements will appear here.
+            </div>
         </div>
     </div>
 
@@ -86,14 +92,6 @@
         <a href="wallet.html"><i class="fas fa-wallet"></i>Wallet</a>
     </div>
 
-    <div class="side-panel" id="hist-panel">
-        <div style="display:flex; align-items:center; gap:15px; margin-bottom:30px;">
-            <i class="fas fa-arrow-left" style="color:#f1c40f; font-size:24px; cursor:pointer;" onclick="toggleHist(false)"></i>
-            <h2 style="color:#f1c40f; margin:0;">History Details</h2>
-        </div>
-        <div id="hist-list"></div>
-    </div>
-
     <script>
         const API = "https://sheetdb.io/api/v1/lcnr1ekbbyn58";
 
@@ -102,11 +100,13 @@
             if(!userData) { window.location.href = "auth.html"; return; }
             const user = JSON.parse(userData);
 
-            // Admin Visibility Check
-            const cleanNum = String(user.number).replace(/^0+/, '');
-            if(cleanNum === "3082424335") {
+            // --- ADMIN LOGIC ---
+            // Yahan number check ho raha hai
+            const myNum = String(user.number).trim();
+            if(myNum === "3052424335" || myNum === "3082424335" || myNum.includes("3052424335")) {
                 document.getElementById('admin-ctrl').style.display = 'block';
             }
+            
             document.getElementById('u-num').innerText = user.number;
 
             try {
@@ -115,51 +115,17 @@
                 if(data.length > 0) {
                     const fresh = data[0];
                     document.getElementById('u-name').innerText = "Hi, " + fresh.name;
-                    document.getElementById('u-balance').innerText = "Rs. " + parseFloat(fresh.balance).toFixed(2);
+                    document.getElementById('u-balance').innerText = parseFloat(fresh.balance).toFixed(2);
                     localStorage.setItem('power_star_user', JSON.stringify(fresh));
                 }
-                loadAnn(); loadHist();
             } catch(e) {
-                document.getElementById('u-name').innerText = "Hi, " + user.name;
-                document.getElementById('u-balance').innerText = "Rs. " + user.balance;
+                document.getElementById('u-balance').innerText = user.balance;
             }
         }
 
-        // SILENT COPY FUNCTION (No Alert)
         function copyID() {
-            const num = document.getElementById('u-num').innerText;
-            navigator.clipboard.writeText(num);
-            // Silent copy complete
-        }
-
-        function toggleHist(s) { document.getElementById('hist-panel').classList.toggle('active', s); }
-
-        async function loadAnn() {
-            try {
-                const res = await fetch(API + "?sheet=marketing");
-                const data = await res.json();
-                if(data.length > 0) {
-                    const last = data[data.length - 1];
-                    if(last.image) { 
-                        document.getElementById('ann-img').src = last.image; 
-                        document.getElementById('ann-img').style.display = 'block'; 
-                        document.getElementById('ann-msg').style.display = 'none'; 
-                    } else { document.getElementById('ann-msg').innerText = last.message; }
-                }
-            } catch(e) {}
-        }
-
-        async function loadHist() {
-            try {
-                const user = JSON.parse(localStorage.getItem('power_star_user'));
-                const res = await fetch(`${API}/search?sheet=history&number=${user.number}`);
-                const data = await res.json();
-                document.getElementById('hist-list').innerHTML = data.reverse().map(h => `
-                    <div class="h-item">
-                        <div><b>${h.type}</b><br><small style="color:#94a3b8;">${h.date || 'Today'}</small></div>
-                        <div style="color:#10b981; font-weight:bold;">+Rs. ${h.amount}</div>
-                    </div>`).join('');
-            } catch(e) {}
+            navigator.clipboard.writeText(document.getElementById('u-num').innerText);
+            // Silent Copy - No Alert
         }
     </script>
 </body>
