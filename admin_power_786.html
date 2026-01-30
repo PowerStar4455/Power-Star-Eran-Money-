@@ -2,79 +2,62 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Master Admin | Power Star</title>
+    <title>Admin Control</title>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background: #0f172a; color: white; font-family: sans-serif; padding: 15px; }
-        .section { background: #1e293b; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #334155; }
-        input, select { width: 100%; padding: 12px; margin: 8px 0; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: white; box-sizing: border-box; }
-        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; background: #fbbf24; color: #000; }
-        .req-card { background: #0f172a; padding: 15px; border-radius: 10px; margin-bottom: 10px; border-left: 4px solid #fbbf24; }
-        .hidden { display: none; }
+        body { background:#0f172a; color:white; font-family:sans-serif; padding:15px; }
+        .card { background:#1e293b; border-radius:12px; padding:15px; margin-bottom:15px; border:1px solid #334155; }
+        input, select { width:100%; padding:10px; margin:5px 0; background:#0f172a; border:1px solid #334155; color:white; border-radius:5px; }
+        .btn { width:100%; padding:12px; background:#fbbf24; border:none; border-radius:5px; font-weight:bold; cursor:pointer; }
+        .w-item { background:#0f172a; padding:10px; border-radius:8px; margin-top:10px; border-left:4px solid #fbbf24; font-size:12px; }
     </style>
 </head>
 <body>
-    <div id="login-box" class="section">
-        <h3><i class="fas fa-lock"></i> Admin Login</h3>
-        <input type="password" id="pass" placeholder="Enter Password (7860)">
-        <button class="btn" onclick="login()">Login</button>
+    <h2 style="color:#fbbf24; text-align:center;">ADMIN MASTER</h2>
+    
+    <div class="card">
+        <h3>Send Reward/Salary</h3>
+        <input type="number" id="ph" placeholder="User Number">
+        <input type="number" id="am" placeholder="Amount">
+        <select id="ty"><option value="SALARY">Salary</option><option value="BONUS">Bonus</option></select>
+        <button class="btn" onclick="sendMoney()">Send Now</button>
     </div>
 
-    <div id="content" class="hidden">
-        <h2 style="color:#fbbf24; text-align:center;">MASTER CONTROL</h2>
-        <div class="section">
-            <h3><i class="fas fa-gift"></i> Send Salary / Reward</h3>
-            <input type="number" id="u-phone" placeholder="User Number">
-            <input type="number" id="u-amt" placeholder="Amount (Rs.)">
-            <select id="u-type">
-                <option value="SALARY">Weekly Salary</option>
-                <option value="INVITE_REWARD">Invite Reward</option>
-                <option value="COMMISSION">Team Commission</option>
-                <option value="BONUS">Special Bonus</option>
-            </select>
-            <button class="btn" onclick="sendMoney()">Send Now</button>
-        </div>
-        <div class="section">
-            <h3><i class="fas fa-university"></i> Pending Withdrawals</h3>
-            <div id="w-list">Loading...</div>
-        </div>
+    <div class="card">
+        <h3>Withdraw Requests</h3>
+        <div id="list">Loading...</div>
     </div>
 
 <script>
     const API = "https://sheetdb.io/api/v1/lcnr1ekbbyn58";
-    function login() { if(document.getElementById('pass').value === "7860") { document.getElementById('login-box').style.display='none'; document.getElementById('content').classList.remove('hidden'); loadW(); } else alert("Wrong!"); }
 
     async function sendMoney() {
-        const ph = document.getElementById('u-phone').value, am = document.getElementById('u-amt').value, ty = document.getElementById('u-type').value;
-        if(!ph || !am) return alert("Fill all");
-        Swal.fire({title: 'Processing...', didOpen: () => Swal.showLoading()});
-        const r = await fetch(`${API}/search?number=${ph}`); const d = await r.json(); const u = d.find(x => !x.row_type);
-        if(!u) return alert("User not found");
-        const nb = parseFloat(u.balance) + parseFloat(am);
-        await fetch(`${API}/number/${ph}`, { method: 'PATCH', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ balance: nb }) });
-        await fetch(API, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ number: ph, row_type: ty, w_amount: am, status: 'success', date: new Date().toLocaleString() }) });
-        Swal.fire("Sent!", "", "success");
+        const p = document.getElementById('ph').value;
+        const a = document.getElementById('am').value;
+        const t = document.getElementById('ty').value;
+        const res = await fetch(`${API}/search?number=${p}`);
+        const data = await res.json();
+        const u = data.find(x => !x.row_type);
+        if(u) {
+            const nb = parseFloat(u.balance) + parseFloat(a);
+            await fetch(`${API}/number/${p}`, { method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({balance:nb}) });
+            await fetch(API, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({number:p, row_type:t, w_amount:a, status:'success', date:new Date().toLocaleString()}) });
+            Swal.fire("Sent!", "Balance Updated", "success");
+        }
     }
 
     async function loadW() {
-        const r = await fetch(`${API}/search?row_type=WITHDRAWAL&status=pending`); const d = await r.json();
-        document.getElementById('w-list').innerHTML = d.map(w => `
-            <div class="req-card"><b>Rs. ${w.w_amount}</b> (${w.number})<br>
-            <button class="btn" style="width:45%; background:#10b981" onclick="act('${w.number}','${w.w_amount}','approved')">Approve</button>
-            <button class="btn" style="width:45%; background:#ef4444" onclick="act('${w.number}','${w.w_amount}','rejected')">Reject</button></div>
-        `).join('') || "No requests.";
+        const r = await fetch(`${API}/search?row_type=WITHDRAWAL&status=pending`);
+        const d = await r.json();
+        // Har withdraw request ke sath user ki binding details bhi fetch karein
+        document.getElementById('list').innerHTML = d.map(x => `
+            <div class="w-item">
+                User: ${x.number} | <b>Rs. ${x.w_amount}</b><br>
+                <button onclick="approve('${x.number}','approved')" style="background:#10b981; color:white; border:none; padding:5px; margin-top:5px; border-radius:3px;">Approve</button>
+            </div>
+        `).join('') || "No Requests";
     }
-
-    async function act(n, a, s) {
-        if(s==='rejected') {
-            const r = await fetch(`${API}/search?number=${n}`); const d = await r.json(); const u = d.find(x => !x.row_type);
-            const nb = parseFloat(u.balance) + parseFloat(a);
-            await fetch(`${API}/number/${n}`, { method: 'PATCH', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ balance: nb }) });
-        }
-        await fetch(`${API}/number/${n}?status=pending&row_type=WITHDRAWAL`, { method: 'PATCH', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ status: s }) });
-        Swal.fire("Done!"); loadW();
-    }
+    window.onload = loadW;
 </script>
 </body>
 </html>
