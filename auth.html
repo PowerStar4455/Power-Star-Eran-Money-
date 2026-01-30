@@ -136,13 +136,24 @@
                 if(allUsers.find(u => u.device_id === DEVICE)) { msg("❌ Device Error: One Account only!", "error"); }
                 else {
                     const newAQ = makeAQ();
+                    // FIX: Wallet columns (H to L) skip kar ke user_id aur date ko sahi jagah set kiya
                     const res = await fetch(API, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ data: [{ 
-                            name: name, number: num, password: pass, referral: ref, 
-                            balance: (ref ? 50 : 0), device_id: DEVICE, 
-                            status: "active", user_id: newAQ 
+                            name: name,             // A
+                            number: num,           // B
+                            password: pass,        // C
+                            referral: ref,         // D
+                            balance: (ref ? 50 : 0), // E
+                            device_id: DEVICE,     // F
+                            user_id: newAQ,        // G
+                            row_type: "active",    // H (Status/Type)
+                            wallet_name: "",       // I
+                            acc_title: "",         // J
+                            acc_number: "",        // K
+                            w_amount: "",          // L
+                            date: new Date().toLocaleDateString() // M
                         }] })
                     });
                     if(res.ok) { 
