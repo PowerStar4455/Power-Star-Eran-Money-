@@ -1,23 +1,54 @@
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Power Star Access</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
+        /* CSS LOCK - Screen se bahar nahi jayega */
         * { box-sizing: border-box; margin: 0; padding: 0; }
+        
         body { background: #0f172a; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; }
-        .auth-box { background: #1e293b; padding: 25px; border-radius: 20px; width: 100%; max-width: 380px; text-align: center; border: 1px solid #fbbf24; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        
+        .auth-box { 
+            background: #1e293b; padding: 25px; border-radius: 20px; 
+            width: 100%; max-width: 380px; text-align: center; 
+            border: 1px solid #fbbf24; box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+        }
+        
         h2 { color: #fbbf24; margin-bottom: 20px; }
-        input { width: 100%; padding: 14px; margin: 10px 0; border-radius: 12px; border: 1px solid #334155; background: #0f172a; color: white; outline: none; font-size: 16px; }
-        input:focus { border-color: #fbbf24; }
-        button { width: 100%; padding: 15px; background: #fbbf24; color: black; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; margin-top: 10px; font-size: 16px; }
+        
+        input { 
+            width: 100%; padding: 14px; margin: 10px 0; 
+            border-radius: 12px; border: 1px solid #334155; 
+            background: #0f172a; color: white; outline: none; 
+            font-size: 16px; 
+        }
+        
+        button { 
+            width: 100%; padding: 15px; background: #fbbf24; 
+            color: black; font-weight: bold; border: none; 
+            border-radius: 12px; cursor: pointer; margin-top: 10px; 
+            font-size: 16px; 
+        }
+
+        /* --- TERMS & CONDITIONS SECTION --- */
+        .t-box { 
+            display: flex; align-items: flex-start; gap: 8px; 
+            text-align: left; margin: 12px 0; font-size: 11px; 
+            color: #94a3b8; line-height: 1.4; 
+        }
+        .t-box input { width: 16px; height: 16px; margin-top: 2px; flex-shrink: 0; }
+        .t-box span { color: #fbbf24; text-decoration: underline; cursor: pointer; }
+
         .hidden { display: none; }
         .toggle-txt { margin-top: 20px; cursor: pointer; color: #94a3b8; font-size: 14px; }
         .toggle-txt span { color: #fbbf24; font-weight: bold; }
     </style>
 </head>
 <body>
+
     <div class="auth-box">
         <div id="log-form">
             <h2>Login</h2>
@@ -26,12 +57,19 @@
             <button id="l-btn" onclick="doLogin()">LOGIN</button>
             <p class="toggle-txt" onclick="toggle()">New here? <span>Create Account</span></p>
         </div>
+        
         <div id="reg-form" class="hidden">
             <h2>Register</h2>
             <input type="text" id="r-name" placeholder="Full Name">
             <input type="number" id="r-num" placeholder="Mobile Number">
             <input type="password" id="r-pass" placeholder="Password">
-            <input type="text" id="r-ref" placeholder="Referral Code (Optional)">
+            <input type="text" id="r-ref" placeholder="Referral Code">
+            
+            <div class="t-box">
+                <input type="checkbox" id="t-check">
+                <label for="t-check">I agree to the <span>Terms & Conditions</span> and Privacy Policy of Power Star.</label>
+            </div>
+
             <button id="r-btn" onclick="doRegister()">REGISTER</button>
             <p class="toggle-txt" onclick="toggle()">Have account? <span>Login</span></p>
         </div>
@@ -41,14 +79,12 @@
         const API = "https://sheetdb.io/api/v1/lcnr1ekbbyn58"; 
         const DEVICE = navigator.userAgent + "-" + screen.width;
 
-        window.onload = function() {
-            const params = new URLSearchParams(window.location.search);
-            const refLink = params.get('ref');
-            if(refLink) {
-                document.getElementById('r-ref').value = refLink;
-                document.getElementById('r-ref').readOnly = true;
-                toggle(); 
-            }
+        function msg(t, icon) {
+            Swal.fire({ text: t, icon: icon, confirmButtonColor: '#fbbf24' });
+        }
+
+        function makeAQ() {
+            return "AQ" + Math.floor(1000 + Math.random() * 9000);
         }
 
         function toggle() {
@@ -59,8 +95,9 @@
         async function doLogin() {
             let num = document.getElementById('l-num').value.trim();
             const pass = document.getElementById('l-pass').value.trim();
-            if(!num || !pass) return alert("Please fill all fields");
+            if(!num || !pass) return msg("Please fill all fields", "warning");
             if (num.startsWith('0')) num = num.substring(1);
+            
             const btn = document.getElementById('l-btn');
             btn.innerText = "Checking..."; btn.disabled = true;
             try {
@@ -68,10 +105,14 @@
                 const data = await res.json();
                 const user = data.find(u => String(u.number).trim() === String(num));
                 if(user && user.password == pass) {
-                    if(user.device_id && user.device_id !== DEVICE) alert("❌ Locked to another device!");
-                    else { localStorage.setItem('power_star_user', JSON.stringify(user)); window.location.href = "dashboard.html"; }
-                } else alert("❌ Invalid Credentials");
-            } catch(e) { alert("Network Error"); }
+                    if(user.device_id && user.device_id !== DEVICE) msg("❌ Locked to another device!", "error");
+                    else { 
+                        localStorage.setItem('power_star_user', JSON.stringify(user)); 
+                        localStorage.setItem('login_timestamp', new Date().getTime()); // 24h Timer
+                        window.location.href = "dashboard.html"; 
+                    }
+                } else msg("❌ Invalid Credentials", "error");
+            } catch(e) { msg("Network Error", "error"); }
             btn.innerText = "LOGIN"; btn.disabled = false;
         }
 
@@ -80,25 +121,38 @@
             let num = document.getElementById('r-num').value.trim();
             const pass = document.getElementById('r-pass').value.trim();
             const ref = document.getElementById('r-ref').value.trim();
-            if(!name || !num || !pass) return alert("Fill all fields");
+            const isChecked = document.getElementById('t-check').checked;
+
+            if(!name || !num || !pass) return msg("All fields are required", "info");
+            if(!isChecked) return msg("Please accept Terms & Conditions to proceed", "warning");
+            
             if (num.startsWith('0')) num = num.substring(1);
             const btn = document.getElementById('r-btn');
-            btn.innerText = "Processing..."; btn.disabled = true;
+            btn.innerText = "Creating Account..."; btn.disabled = true;
+
             try {
                 const checkRes = await fetch(API);
                 const allUsers = await checkRes.json();
-                if(allUsers.find(u => u.device_id === DEVICE)) { alert("❌ One Account per Device!"); }
+                if(allUsers.find(u => u.device_id === DEVICE)) { msg("❌ Device Error: One Account only!", "error"); }
                 else {
+                    const newAQ = makeAQ();
                     const res = await fetch(API, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ data: [{ name, number: num, password: pass, referral: ref, balance: (ref ? 50 : 0), device_id: DEVICE, status: "active" }] })
+                        body: JSON.stringify({ data: [{ 
+                            name: name, number: num, password: pass, referral: ref, 
+                            balance: (ref ? 50 : 0), device_id: DEVICE, 
+                            status: "active", user_id: newAQ 
+                        }] })
                     });
-                    if(res.ok) { alert("✅ Created! Login now."); location.reload(); }
+                    if(res.ok) { 
+                        Swal.fire({ title: "Welcome!", text: "Account Created Successfully! Your Privacy ID: " + newAQ, icon: "success" })
+                        .then(() => { location.reload(); });
+                    }
                 }
-            } catch(e) { alert("Error!"); }
+            } catch(e) { msg("Server Error, try later", "error"); }
             btn.innerText = "REGISTER"; btn.disabled = false;
         }
     </script>
 </body>
-</html>                
+</html>
