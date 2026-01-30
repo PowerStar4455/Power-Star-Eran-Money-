@@ -3,156 +3,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Power Star Access</title>
+    <title>Power Star | Team</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        /* CSS LOCK - Screen se bahar nahi jayega */
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        
-        body { background: #0f172a; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; }
-        
-        .auth-box { 
-            background: #1e293b; padding: 25px; border-radius: 20px; 
-            width: 100%; max-width: 380px; text-align: center; 
-            border: 1px solid #fbbf24; box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
-        }
-        
-        h2 { color: #fbbf24; margin-bottom: 20px; }
-        
-        input { 
-            width: 100%; padding: 14px; margin: 10px 0; 
-            border-radius: 12px; border: 1px solid #334155; 
-            background: #0f172a; color: white; outline: none; 
-            font-size: 16px; 
-        }
-        
-        button { 
-            width: 100%; padding: 15px; background: #fbbf24; 
-            color: black; font-weight: bold; border: none; 
-            border-radius: 12px; cursor: pointer; margin-top: 10px; 
-            font-size: 16px; 
-        }
-
-        /* --- TERMS & CONDITIONS SECTION --- */
-        .t-box { 
-            display: flex; align-items: flex-start; gap: 8px; 
-            text-align: left; margin: 12px 0; font-size: 11px; 
-            color: #94a3b8; line-height: 1.4; 
-        }
-        .t-box input { width: 16px; height: 16px; margin-top: 2px; flex-shrink: 0; }
-        .t-box span { color: #fbbf24; text-decoration: underline; cursor: pointer; }
-
-        .hidden { display: none; }
-        .toggle-txt { margin-top: 20px; cursor: pointer; color: #94a3b8; font-size: 14px; }
-        .toggle-txt span { color: #fbbf24; font-weight: bold; }
+        body { background: #0f172a; color: white; font-family: sans-serif; padding: 15px; max-width: 480px; margin: auto; }
+        .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0; }
+        .stat-card { background: #1e293b; padding: 15px 5px; border-radius: 15px; text-align: center; border-bottom: 3px solid #fbbf24; }
+        .stat-card h3 { font-size: 14px; color: #fbbf24; }
+        .stat-card p { font-size: 9px; color: #94a3b8; margin-top: 5px; }
+        .btn-share { width: 100%; padding: 15px; background: #fbbf24; color: black; font-weight: bold; border-radius: 15px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .team-box { background: #1e293b; border-radius: 20px; padding: 20px; margin-top: 20px; min-height: 200px; }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; z-index: 100; }
+        .sheet { position: fixed; bottom: -100%; left: 0; width: 100%; background: #1e293b; border-radius: 25px 25px 0 0; padding: 25px; z-index: 101; transition: 0.4s; border-top: 2px solid #fbbf24; }
+        .sheet.active { bottom: 0; }
+        .options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 20px; text-align: center; }
+        .opt-icon { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 5px; color: white; font-size: 20px; }
     </style>
 </head>
 <body>
+    <h2><i class="fas fa-users" style="color:#fbbf24;"></i> My Team</h2>
+    
+    <div class="stat-grid">
+        <div class="stat-card"><h3 id="t-count">0</h3><p>TEAM SIZE</p></div>
+        <div class="stat-card"><h3 id="t-bonus">Rs. 0</h3><p>JOIN BONUS</p></div>
+        <div class="stat-card"><h3 id="t-comm">Rs. 0</h3><p>5% LIFETIME</p></div>
+    </div>
 
-    <div class="auth-box">
-        <div id="log-form">
-            <h2>Login</h2>
-            <input type="number" id="l-num" placeholder="Mobile Number">
-            <input type="password" id="l-pass" placeholder="Password">
-            <button id="l-btn" onclick="doLogin()">LOGIN</button>
-            <p class="toggle-txt" onclick="toggle()">New here? <span>Create Account</span></p>
+    <button class="btn-share" onclick="toggleSheet(true)"><i class="fas fa-share-alt"></i> INVITE FRIENDS</button>
+
+    <div class="team-box">
+        <div id="team-data"><p style="text-align:center; color:#64748b;">Loading team...</p></div>
+    </div>
+
+    <div class="overlay" id="overlay" onclick="toggleSheet(false)"></div>
+    <div class="sheet" id="sheet">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3>Share via</h3>
+            <i class="fas fa-times" onclick="toggleSheet(false)" style="cursor:pointer;"></i>
         </div>
-        
-        <div id="reg-form" class="hidden">
-            <h2>Register</h2>
-            <input type="text" id="r-name" placeholder="Full Name">
-            <input type="number" id="r-num" placeholder="Mobile Number">
-            <input type="password" id="r-pass" placeholder="Password">
-            <input type="text" id="r-ref" placeholder="Referral Code">
-            
-            <div class="t-box">
-                <input type="checkbox" id="t-check">
-                <label for="t-check">I agree to the <span>Terms & Conditions</span> and Privacy Policy of Power Star.</label>
-            </div>
-
-            <button id="r-btn" onclick="doRegister()">REGISTER</button>
-            <p class="toggle-txt" onclick="toggle()">Have account? <span>Login</span></p>
+        <div class="options">
+            <div onclick="copyLink()"><div class="opt-icon" style="background:#475569;"><i class="fas fa-link"></i></div><span style="font-size:10px;">Copy</span></div>
+            <div onclick="shareWA()"><div class="opt-icon" style="background:#25D366;"><i class="fab fa-whatsapp"></i></div><span style="font-size:10px;">WhatsApp</span></div>
+            <div onclick="shareTG()"><div class="opt-icon" style="background:#0088cc;"><i class="fab fa-telegram-plane"></i></div><span style="font-size:10px;">Telegram</span></div>
+            <div onclick="shareMore()"><div class="opt-icon" style="background:#fbbf24; color:black;"><i class="fas fa-ellipsis-h"></i></div><span style="font-size:10px;">More</span></div>
         </div>
     </div>
 
     <script>
-        const API = "https://sheetdb.io/api/v1/lcnr1ekbbyn58"; 
-        const DEVICE = navigator.userAgent + "-" + screen.width;
+        const API = "https://sheetdb.io/api/v1/lcnr1ekbbyn58";
+        const userData = localStorage.getItem('power_star_user');
+        const user = userData ? JSON.parse(userData) : null;
+        
+        // PRIVACY FIX: Using user_id instead of number for referral
+        const MY_ID = user ? user.user_id : null;
 
-        function msg(t, icon) {
-            Swal.fire({ text: t, icon: icon, confirmButtonColor: '#fbbf24' });
-        }
+        window.onload = () => { 
+            if(!user || !MY_ID) {
+                window.location.href="auth.html"; 
+            } else {
+                loadTeam(); 
+            }
+        };
 
-        function makeAQ() {
-            return "AQ" + Math.floor(1000 + Math.random() * 9000);
-        }
-
-        function toggle() {
-            document.getElementById('reg-form').classList.toggle('hidden');
-            document.getElementById('log-form').classList.toggle('hidden');
-        }
-
-        async function doLogin() {
-            let num = document.getElementById('l-num').value.trim();
-            const pass = document.getElementById('l-pass').value.trim();
-            if(!num || !pass) return msg("Please fill all fields", "warning");
-            if (num.startsWith('0')) num = num.substring(1);
-            
-            const btn = document.getElementById('l-btn');
-            btn.innerText = "Checking..."; btn.disabled = true;
+        async function loadTeam() {
             try {
-                const res = await fetch(API);
+                // Search for members who joined using MY AQ-ID
+                const res = await fetch(`${API}/search?referral=${MY_ID}`);
                 const data = await res.json();
-                const user = data.find(u => String(u.number).trim() === String(num));
-                if(user && user.password == pass) {
-                    if(user.device_id && user.device_id !== DEVICE) msg("❌ Locked to another device!", "error");
-                    else { 
-                        localStorage.setItem('power_star_user', JSON.stringify(user)); 
-                        localStorage.setItem('login_timestamp', new Date().getTime()); // 24h Timer
-                        window.location.href = "dashboard.html"; 
-                    }
-                } else msg("❌ Invalid Credentials", "error");
-            } catch(e) { msg("Network Error", "error"); }
-            btn.innerText = "LOGIN"; btn.disabled = false;
-        }
-
-        async function doRegister() {
-            const name = document.getElementById('r-name').value.trim();
-            let num = document.getElementById('r-num').value.trim();
-            const pass = document.getElementById('r-pass').value.trim();
-            const ref = document.getElementById('r-ref').value.trim();
-            const isChecked = document.getElementById('t-check').checked;
-
-            if(!name || !num || !pass) return msg("All fields are required", "info");
-            if(!isChecked) return msg("Please accept Terms & Conditions to proceed", "warning");
-            
-            if (num.startsWith('0')) num = num.substring(1);
-            const btn = document.getElementById('r-btn');
-            btn.innerText = "Creating Account..."; btn.disabled = true;
-
-            try {
-                const checkRes = await fetch(API);
-                const allUsers = await checkRes.json();
-                if(allUsers.find(u => u.device_id === DEVICE)) { msg("❌ Device Error: One Account only!", "error"); }
-                else {
-                    const newAQ = makeAQ();
-                    const res = await fetch(API, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ data: [{ 
-                            name: name, number: num, password: pass, referral: ref, 
-                            balance: (ref ? 50 : 0), device_id: DEVICE, 
-                            status: "active", user_id: newAQ 
-                        }] })
-                    });
-                    if(res.ok) { 
-                        Swal.fire({ title: "Welcome!", text: "Account Created Successfully! Your Privacy ID: " + newAQ, icon: "success" })
-                        .then(() => { location.reload(); });
-                    }
+                
+                let totalBal = 0;
+                if(data.length > 0) {
+                    data.forEach(m => totalBal += parseFloat(m.balance || 0));
+                    document.getElementById('t-count').innerText = data.length;
+                    document.getElementById('t-bonus').innerText = "Rs. " + (data.length * 50);
+                    document.getElementById('t-comm').innerText = "Rs. " + (totalBal * 0.05).toFixed(2);
+                    
+                    document.getElementById('team-data').innerHTML = data.map(m => `
+                        <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid #334155; align-items:center;">
+                            <div>
+                                <span style="font-size:14px; font-weight:bold;">${m.name}</span><br>
+                                <small style="color:#64748b;">ID: ${m.user_id || 'Old User'}</small>
+                            </div>
+                            <div style="text-align:right;">
+                                <span style="font-size:12px; color:#fbbf24;">Rs. ${(parseFloat(m.balance||0)*0.05).toFixed(2)}</span><br>
+                                <small style="color:#94a3b8; font-size:9px;">5% Share</small>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    document.getElementById('team-data').innerHTML = `<p style="text-align:center; color:#64748b; margin-top:20px;">No team members yet.</p>`;
                 }
-            } catch(e) { msg("Server Error, try later", "error"); }
-            btn.innerText = "REGISTER"; btn.disabled = false;
+            } catch(e) { 
+                console.log("Error loading team");
+                document.getElementById('team-data').innerHTML = `<p style="text-align:center; color:red;">Failed to load data.</p>`;
+            }
         }
+
+        function toggleSheet(s) { 
+            document.getElementById('sheet').classList.toggle('active', s); 
+            document.getElementById('overlay').style.display = s ? 'block' : 'none'; 
+        }
+
+        // Link with AQ-ID for Privacy
+        function getLink() { 
+            return window.location.origin + window.location.pathname.replace('team.html', 'auth.html') + "?ref=" + MY_ID; 
+        }
+
+        function copyLink() { 
+            const link = getLink();
+            navigator.clipboard.writeText(link).then(() => {
+                Swal.fire({ text: "Referral Link Copied!", icon: "success", timer: 1500, showConfirmButton: false });
+                toggleSheet(false);
+            });
+        }
+
+        function shareWA() { window.open(`https://wa.me/?text=Join Power Star and Earn! %0A${getLink()}`); }
+        function shareTG() { window.open(`https://t.me/share/url?url=${getLink()}&text=Join Power Star and Earn!`); }
+        function shareMore() { if(navigator.share) navigator.share({title:'Power Star', url:getLink()}); }
     </script>
 </body>
 </html>
