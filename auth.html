@@ -7,31 +7,34 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* 100% SAME ORIGINAL CSS */
+        /* 100% ORIGINAL STYLE MAINTAINED */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { background: #0f172a; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; }
         .auth-box { background: #1e293b; padding: 25px; border-radius: 20px; width: 100%; max-width: 380px; text-align: center; border: 1px solid #fbbf24; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         h2 { color: #fbbf24; margin-bottom: 20px; }
-        input { width: 100%; padding: 14px; margin: 10px 0; border-radius: 12px; border: 1px solid #334155; background: #0f172a; color: white; outline: none; font-size: 16px; }
-        button { width: 100%; padding: 15px; background: #fbbf24; color: black; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; margin-top: 10px; font-size: 16px; }
-        .t-box { display: flex; align-items: flex-start; gap: 8px; text-align: left; margin: 12px 0; font-size: 11px; color: #94a3b8; line-height: 1.4; }
-        .t-box input { width: 16px; height: 16px; margin-top: 2px; flex-shrink: 0; }
-        .t-box a { color: #fbbf24; text-decoration: underline; }
-        .hidden { display: none; }
-        .toggle-txt { margin-top: 20px; cursor: pointer; color: #94a3b8; font-size: 14px; }
-        .toggle-txt span { color: #fbbf24; font-weight: bold; }
-
-        /* --- NEW PROFESSIONAL UI FIXES --- */
-        .input-group { position: relative; display: flex; align-items: center; margin: 10px 0; }
-        .prefix { position: absolute; left: 12px; color: #fbbf24; font-weight: bold; border-right: 1px solid #334155; padding-right: 8px; font-size: 15px; }
-        .input-group input { padding-left: 55px; margin: 0; }
         
+        /* +92 Prefix Styling */
+        .input-group { position: relative; display: flex; align-items: center; margin: 10px 0; }
+        .prefix { position: absolute; left: 12px; color: #fbbf24; font-weight: bold; border-right: 1px solid #334155; padding-right: 8px; z-index: 10; }
+        .input-group input { padding-left: 55px !important; margin: 0; }
+        
+        /* Eye Icon Styling */
         .pass-group { position: relative; width: 100%; margin: 10px 0; }
         .pass-group input { margin: 0; padding-right: 45px; }
         .eye-btn { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8; cursor: pointer; }
 
-        .dev-box { margin-top: 25px; padding: 10px; background: #0f172a; border-radius: 10px; font-size: 10px; color: #64748b; display: flex; justify-content: space-between; align-items: center; border: 1px dashed #334155; }
-        .dev-box i { color: #fbbf24; cursor: pointer; font-size: 14px; }
+        input { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #334155; background: #0f172a; color: white; outline: none; font-size: 16px; }
+        button { width: 100%; padding: 15px; background: #fbbf24; color: black; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; margin-top: 10px; font-size: 16px; }
+        
+        /* Device ID Toggle Section */
+        .dev-section { margin-top: 25px; padding: 10px; background: #0f172a; border-radius: 10px; border: 1px dashed #334155; font-size: 11px; color: #64748b; display: flex; justify-content: space-between; align-items: center; }
+        .dev-txt { font-family: monospace; }
+        .dev-icons i { color: #fbbf24; cursor: pointer; margin-left: 10px; font-size: 14px; }
+
+        .t-box { display: flex; align-items: flex-start; gap: 8px; text-align: left; margin: 12px 0; font-size: 11px; color: #94a3b8; line-height: 1.4; }
+        .hidden { display: none; }
+        .toggle-txt { margin-top: 20px; cursor: pointer; color: #94a3b8; font-size: 14px; }
+        .toggle-txt span { color: #fbbf24; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -65,32 +68,31 @@
             <input type="text" id="r-ref" placeholder="Referral Code">
             <div class="t-box">
                 <input type="checkbox" id="t-check">
-                <label for="t-check">I agree to the <a href="terms.html">Terms & Conditions</a></label>
+                <label for="t-check">I agree to the <a href="terms.html" style="color:#fbbf24">Terms & Conditions</a></label>
             </div>
             <button id="r-btn" onclick="doRegister()">REGISTER</button>
             <p class="toggle-txt" onclick="toggle()">Have account? <span>Login</span></p>
         </div>
 
-        <div class="dev-box">
-            <span>DEVICE ID: <b id="my-dev">...</b></span>
-            <i class="fa-solid fa-copy" onclick="copyID()"></i>
+        <div class="dev-section">
+            <span>ID: <span id="dev-display" class="dev-txt">********</span></span>
+            <div class="dev-icons">
+                <i class="fa-solid fa-circle-info" onclick="viewID()" title="Show ID"></i>
+                <i class="fa-solid fa-copy" onclick="copyID()" title="Copy ID"></i>
+            </div>
         </div>
     </div>
 
     <script>
         const API = "https://sheetdb.io/api/v1/lcnr1ekbbyn58"; 
         const DEVICE = navigator.userAgent.slice(0,10) + "-" + screen.width;
-        document.getElementById('my-dev').innerText = DEVICE;
+        let isViewed = false;
 
         function msg(t, icon) { Swal.fire({ text: t, icon: icon, confirmButtonColor: '#fbbf24' }); }
         function makeAQ() { return "AQ" + Math.floor(1000 + Math.random() * 9000); }
-        
-        function toggle() { 
-            document.getElementById('reg-form').classList.toggle('hidden'); 
-            document.getElementById('log-form').classList.toggle('hidden'); 
-        }
+        function toggle() { document.getElementById('reg-form').classList.toggle('hidden'); document.getElementById('log-form').classList.toggle('hidden'); }
 
-        // 👁️ Eye Toggle
+        // 👁️ Toggle Password Visibility
         function togglePass(id, el) {
             const input = document.getElementById(id);
             if (input.type === "password") {
@@ -102,7 +104,14 @@
             }
         }
 
-        // 📋 Copy ID
+        // ℹ️ View/Hide Device ID
+        function viewID() {
+            const disp = document.getElementById('dev-display');
+            isViewed = !isViewed;
+            disp.innerText = isViewed ? DEVICE : "********";
+        }
+
+        // 📋 Copy Device ID
         function copyID() {
             navigator.clipboard.writeText(DEVICE);
             msg("Device ID Copied!", "success");
@@ -119,17 +128,10 @@
                 const res = await fetch(API);
                 const data = await res.json();
                 const user = data.find(u => String(u.number) === String(num) && String(u.password) === String(pass));
-                
                 if(user) {
-                    if(user.device_id && user.device_id !== DEVICE) {
-                        msg("❌ Locked to another device!", "error");
-                    } else { 
-                        localStorage.setItem('power_star_user', JSON.stringify(user)); 
-                        window.location.href = "dashboard.html"; 
-                    }
-                } else {
-                    msg("❌ Invalid Credentials", "error");
-                }
+                    if(user.device_id && user.device_id !== DEVICE) msg("❌ Wrong Device!", "error");
+                    else { localStorage.setItem('power_star_user', JSON.stringify(user)); window.location.href = "dashboard.html"; }
+                } else msg("❌ Invalid Login", "error");
             } catch(e) { msg("Connection Error", "error"); }
             btn.innerText = "LOGIN"; btn.disabled = false;
         }
@@ -141,40 +143,26 @@
             const ref = document.getElementById('r-ref').value.trim();
             const isChecked = document.getElementById('t-check').checked;
 
-            if(!name || !num || !pass || !isChecked) return msg("Complete all fields", "info");
+            if(!name || !num || !pass || !isChecked) return msg("Fill all fields", "info");
             
             const btn = document.getElementById('r-btn');
-            btn.innerText = "Creating..."; btn.disabled = true;
+            btn.innerText = "Processing..."; btn.disabled = true;
 
             try {
                 const checkRes = await fetch(API);
                 const allUsers = await checkRes.json();
-                if(allUsers.find(u => u.device_id === DEVICE)) { 
-                    msg("❌ Device Error: One Account only!", "error"); 
-                } else {
-                    const newAQ = makeAQ();
-                    const payload = {
-                        data: [{ 
-                            name: name,         
-                            number: num,        
-                            password: pass,     
-                            referral: ref,      
-                            balance: (ref ? 50 : 0), 
-                            device_id: DEVICE,  
-                            user_id: newAQ,     
-                            status: "active",   
-                            date: new Date().toLocaleDateString() 
-                        }]
-                    };
-                    const res = await fetch(API, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-                    if(res.ok) { 
-                        Swal.fire({ title: "Welcome!", text: "ID: " + newAQ, icon: "success" }).then(() => { location.reload(); });
-                    }
-                }
+                if(allUsers.find(u => u.device_id === DEVICE)) return msg("❌ Already Registered!", "error");
+
+                const newAQ = makeAQ();
+                const payload = { data: [{ 
+                    name, number: num, password: pass, referral: ref, 
+                    balance: (ref ? 50 : 0), device_id: DEVICE, 
+                    user_id: newAQ, status: "active", 
+                    date: new Date().toLocaleDateString('en-GB') // 💯 Proper Date Format
+                }]};
+
+                const res = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)});
+                if(res.ok) Swal.fire({ title: "Welcome!", text: "ID: " + newAQ, icon: "success" }).then(() => location.reload());
             } catch(e) { msg("Server Busy", "error"); }
             btn.innerText = "REGISTER"; btn.disabled = false;
         }
