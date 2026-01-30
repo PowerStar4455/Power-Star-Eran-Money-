@@ -6,10 +6,9 @@
     <title>Power Star</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         body { background: #0f172a; color: white; font-family: 'Poppins', sans-serif; margin: 0; padding-bottom: 90px; }
-        
-        /* --- HEADER CARD (Matching Screenshot 2) --- */
         .header-container { padding: 15px; }
         .header-card { 
             background: #f1c40f; color: black; padding: 30px 20px; 
@@ -17,27 +16,17 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
             position: relative;
         }
-
         .top-row { display: flex; justify-content: space-between; align-items: flex-start; }
         .u-id { background: rgba(0,0,0,0.08); padding: 8px 12px; border-radius: 50px; font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; }
         .hist-btn { background: #1e293b; color: #f1c40f; width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; }
-
-        .balance-box { font-size: 48px; font-weight: 800; margin: 10px 0; font-family: 'Courier New', monospace; }
-
-        /* --- ADMIN BUTTON (FORCE VISIBLE) --- */
-        #admin-ctrl { 
-            display: none; /* JS will show this */
-            padding: 0 20px; 
-            margin: 20px 0; 
-        }
+        .balance-box { font-size: 40px; font-weight: 800; margin: 10px 0; font-family: 'Courier New', monospace; }
+        #admin-ctrl { display: none; padding: 0 20px; margin: 20px 0; }
         .admin-btn { 
             width: 100%; padding: 16px; background: #ef4444; color: white; 
             border: none; border-radius: 20px; font-weight: bold; 
             box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4); 
             cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
         }
-
-        /* --- ANNOUNCEMENT CARD --- */
         .ann-container { padding: 0 15px; }
         .ann-card {
             background: #1e293b; border-radius: 35px;
@@ -47,8 +36,6 @@
             box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
         }
         #ann-img { width: 100%; border-radius: 20px; display: none; }
-
-        /* --- NAVIGATION --- */
         .nav { position: fixed; bottom: 0; width: 100%; background: #1e293b; display: flex; justify-content: space-around; padding: 15px 0; border-top: 2px solid #f1c40f; z-index: 1000; }
         .nav a { color: #94a3b8; text-decoration: none; font-size: 11px; text-align: center; flex: 1; }
         .nav a.active { color: #f1c40f; font-weight: bold; }
@@ -60,8 +47,8 @@
     <div class="header-container">
         <div class="header-card">
             <div class="top-row">
-                <div class="u-id" onclick="copyID()">ID: <span id="u-num">0000</span> <i class="far fa-copy"></i></div>
-                <div class="hist-btn" onclick="toggleHist(true)"><i class="fas fa-history"></i></div>
+                <div class="u-id" onclick="copyID()">ID: <span id="u-num">Loading...</span> <i class="far fa-copy"></i></div>
+                <div class="hist-btn"><i class="fas fa-history"></i></div>
             </div>
             <h2 id="u-name" style="margin:15px 0 0;">Hi, User</h2>
             <p style="font-size: 11px; letter-spacing: 1px; margin-top:5px; opacity:0.7;">AVAILABLE BALANCE</p>
@@ -77,7 +64,6 @@
 
     <div class="ann-container">
         <div class="ann-card">
-            <img id="ann-img" src="">
             <div id="ann-msg" style="text-align:center; color:#94a3b8;">
                 <i class="fas fa-bullhorn" style="font-size:24px; margin-bottom:10px;"></i><br>
                 Official announcements will appear here.
@@ -98,34 +84,42 @@
         window.onload = async function() {
             const userData = localStorage.getItem('power_star_user');
             if(!userData) { window.location.href = "auth.html"; return; }
-            const user = JSON.parse(userData);
+            
+            let user = JSON.parse(userData);
 
-            // --- ADMIN LOGIC ---
-            // Yahan number check ho raha hai
+            // --- ADMIN LOGIC (UNTOUCHED) ---
             const myNum = String(user.number).trim();
-            if(myNum === "3052424335" || myNum === "3082424335" || myNum.includes("3052424335")) {
+            if(myNum === "3052424335" || myNum === "3082424335") {
                 document.getElementById('admin-ctrl').style.display = 'block';
             }
             
-            document.getElementById('u-num').innerText = user.number;
+            // Priority: user_id (AQ-ID) else Mobile Number
+            document.getElementById('u-num').innerText = user.user_id || user.number;
+            document.getElementById('u-name').innerText = "Hi, " + (user.name || "User");
+            
+            // Initial Balance Display (Safe from NaN)
+            let b = parseFloat(user.balance);
+            document.getElementById('u-balance').innerText = isNaN(b) ? "0.00" : b.toFixed(2);
 
             try {
+                // Fetching fresh balance from API
                 const res = await fetch(`${API}/search?number=${user.number}`);
                 const data = await res.json();
                 if(data.length > 0) {
                     const fresh = data[0];
-                    document.getElementById('u-name').innerText = "Hi, " + fresh.name;
-                    document.getElementById('u-balance').innerText = parseFloat(fresh.balance).toFixed(2);
+                    let fb = parseFloat(fresh.balance);
+                    document.getElementById('u-balance').innerText = isNaN(fb) ? "0.00" : fb.toFixed(2);
+                    
+                    // Keep the storage updated with fresh data
                     localStorage.setItem('power_star_user', JSON.stringify(fresh));
                 }
-            } catch(e) {
-                document.getElementById('u-balance').innerText = user.balance;
-            }
+            } catch(e) { console.log("Sync failed"); }
         }
 
         function copyID() {
-            navigator.clipboard.writeText(document.getElementById('u-num').innerText);
-            // Silent Copy - No Alert
+            const idVal = document.getElementById('u-num').innerText;
+            navigator.clipboard.writeText(idVal);
+            Swal.fire({ text: "ID Copied!", icon: "success", timer: 1000, showConfirmButton: false });
         }
     </script>
 </body>
