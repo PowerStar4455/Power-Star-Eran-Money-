@@ -2,54 +2,136 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Power Star - Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Power Star | Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background: #0f172a; color: white; font-family: 'Poppins', sans-serif; margin: 0; padding-bottom: 80px; }
-        .header { background: linear-gradient(135deg, #f1c40f, #d4ac0d); color: black; padding: 40px 20px; border-radius: 0 0 35px 35px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-        .balance-box { font-size: 42px; font-weight: 800; margin: 10px 0; }
-        .nav { position: fixed; bottom: 0; width: 100%; background: #1e293b; display: flex; justify-content: space-around; padding: 15px 0; border-top: 2px solid #f1c40f; }
-        .nav a { color: #94a3b8; text-decoration: none; font-size: 12px; text-align: center; flex: 1; }
-        .nav a.active { color: #f1c40f; font-weight: 700; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #0f172a; color: white; font-family: sans-serif; overflow-x: hidden; }
+
+        /* --- TOP HEADER --- */
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #1e293b; border-bottom: 1px solid #334155; }
+        .u-id-box { background: #0f172a; padding: 8px 12px; border-radius: 10px; border: 1px solid #fbbf24; font-size: 12px; display: flex; align-items: center; gap: 8px; cursor: pointer; }
+        .hist-btn { background: #fbbf24; color: #000; width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; }
+
+        /* --- SMART BALANCE --- */
+        .bal-container { padding: 20px; text-align: center; }
+        .bal-card { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); padding: 25px; border-radius: 20px; border: 1px solid rgba(251,191,36,0.3); box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .bal-card p { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+        .bal-card h1 { font-size: 38px; color: #fbbf24; margin-top: 8px; font-weight: 800; }
+
+        /* --- ADMIN BUTTON (Fixed Link) --- */
+        #admin-btn-container { display: none; padding: 0 20px; margin-bottom: 20px; }
+        .admin-btn { width: 100%; padding: 14px; background: #ef4444; color: white; border-radius: 12px; border: none; font-weight: bold; font-size: 14px; cursor: pointer; box-shadow: 0 5px 15px rgba(239, 68, 68, 0.3); }
+
+        /* --- MARKETING AREA --- */
+        .marketing-area { margin: 10px 20px; border-radius: 15px; overflow: hidden; background: rgba(30, 41, 59, 0.5); border: 1px dashed #334155; min-height: 120px; display: flex; align-items: center; justify-content: center; }
+        #marketing-img { width: 100%; height: auto; display: none; border-radius: 15px; }
+        #marketing-msg { padding: 20px; text-align: center; font-size: 14px; color: #cbd5e1; }
+
+        /* --- HISTORY PANEL --- */
+        .side-panel { position: fixed; top: 0; right: -100%; width: 100%; height: 100%; background: #0f172a; z-index: 1000; transition: 0.4s; padding: 25px; }
+        .side-panel.active { right: 0; }
+        .h-header { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; border-bottom: 1px solid #334155; padding-bottom: 15px; }
+        .h-item { background: #1e293b; padding: 15px; border-radius: 15px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #fbbf24; }
+        .h-details div { font-size: 14px; font-weight: bold; }
+        .h-amount { color: #10b981; font-weight: bold; }
     </style>
 </head>
 <body>
+
     <div class="header">
-        <h3 id="u-name">Welcome User</h3>
-        <p style="margin:0; opacity:0.8; font-size: 13px;">YOUR CURRENT BALANCE</p>
-        <div class="balance-box" id="u-balance">Rs. 0.00</div>
+        <div class="u-id-box" onclick="copyMyID()">
+            <i class="fas fa-id-badge" style="color:#fbbf24;"></i>
+            <span id="u-number-display">ID: 000000</span>
+            <i class="far fa-copy" style="font-size: 10px; color:#94a3b8;"></i>
+        </div>
+        <div class="hist-btn" onclick="toggleHistory(true)"><i class="fas fa-history"></i></div>
     </div>
 
-    <div class="nav">
-        <a href="dashboard.html" class="active">🏠<br>Home</a>
-        <a href="marketing.html">🚀<br>Marketing</a>
-        <a href="team.html">👥<br>Team</a>
-        <a href="wallet.html">💰<br>Wallet</a>
+    <div class="bal-container">
+        <div class="bal-card">
+            <p>Available Balance</p>
+            <h1><small style="font-size:20px; font-weight:400;">Rs.</small> <span id="u-balance-display">0.00</span></h1>
+        </div>
+    </div>
+
+    <div id="admin-btn-container">
+        <button class="admin-btn" onclick="window.location.href='admin_control.html'">
+            <i class="fas fa-user-shield"></i> OPEN ADMIN CONTROL
+        </button>
+    </div>
+
+    <div class="marketing-area">
+        <img id="marketing-img" src="">
+        <div id="marketing-msg">📢 Power Star updates will appear here.</div>
+    </div>
+
+    <div class="side-panel" id="hist-panel">
+        <div class="h-header">
+            <i class="fas fa-chevron-left" style="color:#fbbf24; font-size:20px; cursor:pointer;" onclick="toggleHistory(false)"></i>
+            <h2 style="color:#fbbf24;">History</h2>
+        </div>
+        <div id="hist-list"></div>
     </div>
 
     <script>
-        const API = "https://sheetdb.io/api/v1/lcnr1ekbbyn58";
+        const user = JSON.parse(localStorage.getItem('power_star_user'));
+        const API_URL = "https://sheetdb.io/api/v1/lcnr1ekbbyn58";
 
-        window.onload = async function() {
-            const user = JSON.parse(localStorage.getItem('power_star_user'));
-            if(!user) { window.location.href = "auth.html"; return; }
+        window.onload = function() {
+            if(!user) {
+                window.location.href = "auth.html";
+            } else {
+                document.getElementById('u-number-display').innerText = "ID: " + user.number;
+                document.getElementById('u-balance-display').innerText = user.balance || "0.00";
 
-            // Live Data Fetch from Sheet
+                // Admin Check: 03052424335 becomes 3052424335 in sheet
+                if(String(user.number) === "3052424335") {
+                    document.getElementById('admin-btn-container').style.display = 'block';
+                }
+                loadMarketing();
+                loadHistory();
+            }
+        };
+
+        function copyMyID() {
+            navigator.clipboard.writeText(user.number);
+            alert("✅ User ID Copied!");
+        }
+
+        function toggleHistory(s) {
+            document.getElementById('hist-panel').classList.toggle('active', s);
+        }
+
+        async function loadMarketing() {
             try {
-                const res = await fetch(`${API}/search?number=${user.number}`);
+                const res = await fetch(API_URL + "?sheet=marketing");
                 const data = await res.json();
                 if(data.length > 0) {
-                    const freshData = data[0];
-                    document.getElementById('u-name').innerText = "Hi, " + freshData.name;
-                    document.getElementById('u-balance').innerText = "Rs. " + parseFloat(freshData.balance).toFixed(2);
-                    localStorage.setItem('power_star_user', JSON.stringify(freshData));
+                    const active = data[data.length - 1];
+                    if(active.image && active.image.trim() !== "") {
+                        document.getElementById('marketing-img').src = active.image;
+                        document.getElementById('marketing-img').style.display = 'block';
+                        document.getElementById('marketing-msg').style.display = 'none';
+                    } else if(active.message) {
+                        document.getElementById('marketing-msg').innerText = active.message;
+                    }
                 }
-            } catch(e) {
-                // Fallback to local data
-                document.getElementById('u-name').innerText = "Hi, " + user.name;
-                document.getElementById('u-balance').innerText = "Rs. " + user.balance;
-            }
+            } catch(e) { console.error("Marketing Error"); }
+        }
+
+        async function loadHistory() {
+            try {
+                const res = await fetch(`${API_URL}/search?sheet=history&number=${user.number}`);
+                const data = await res.json();
+                const list = document.getElementById('hist-list');
+                list.innerHTML = data.length > 0 ? data.reverse().map(h => `
+                    <div class="h-item">
+                        <div class="h-details"><div>${h.type}</div><small>${h.date || ''}</small></div>
+                        <div class="h-amount">+Rs. ${h.amount}</div>
+                    </div>`).join('') : "<p style='text-align:center; margin-top:50px; color:#475569;'>No history found.</p>";
+            } catch(e) { console.error("History Error"); }
         }
     </script>
 </body>
