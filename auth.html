@@ -30,11 +30,23 @@
         .dev-section { margin-top: 25px; padding: 10px; background: #0f172a; border-radius: 10px; border: 1px dashed #334155; font-size: 11px; color: #64748b; display: flex; justify-content: space-between; align-items: center; }
         .dev-txt { font-family: monospace; }
         .dev-icons i { color: #fbbf24; cursor: pointer; margin-left: 10px; font-size: 14px; }
-
-        .t-box { display: flex; align-items: flex-start; gap: 8px; text-align: left; margin: 12px 0; font-size: 11px; color: #94a3b8; line-height: 1.4; }
-        .hidden { display: none; }
-        .toggle-txt { margin-top: 20px; cursor: pointer; color: #94a3b8; font-size: 14px; }
-        .toggle-txt span { color: #fbbf24; font-weight: bold; }
+.t-box { 
+    display: flex; 
+    align-items: center; /* Checkbox aur text ko ek line mein laane ke liye */
+    justify-content: center; 
+    gap: 10px; 
+    margin: 15px 0; 
+    font-size: 12px; 
+    color: #94a3b8; 
+}
+.t-box input { 
+    width: 18px; 
+    height: 18px; 
+    margin: 0; 
+    cursor: pointer; 
+}
+.t-box label { cursor: pointer; }
+        
     </style>
 </head>
 <body>
@@ -67,8 +79,8 @@
             </div>
             <input type="text" id="r-ref" placeholder="Referral Code">
             <div class="t-box">
-                <input type="checkbox" id="t-check">
-                <label for="t-check">I agree to the <a href="terms.html" style="color:#fbbf24">Terms & Conditions</a></label>
+    <input type="checkbox" id="t-check">
+    <label for="t-check">I agree to the <a href="terms.html" style="color:#fbbf24; text-decoration: underline;">Terms & Conditions</a></label>
             </div>
             <button id="r-btn" onclick="doRegister()">REGISTER</button>
             <p class="toggle-txt" onclick="toggle()">Have account? <span>Login</span></p>
