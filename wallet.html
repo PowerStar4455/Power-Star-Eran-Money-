@@ -1,116 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Power Star | Secure Wallet</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Power Star Admin</title>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Poppins', sans-serif; background-color: #0f172a; color: white; padding: 15px; width: 100vw; overflow-x: hidden; }
-        .atm-card { background: linear-gradient(135deg, #d4af37, #b48608); border-radius: 20px; padding: 20px; box-shadow: 0 10px 20px rgba(212, 175, 55, 0.3); margin-bottom: 20px; width: 100%; }
-        .bank-card { display: none; background: linear-gradient(135deg, #10b981, #059669); border-radius: 20px; padding: 20px; margin-bottom: 20px; border: 1px solid #34d399; position: relative; width: 100%; }
-        .glass-box { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 15px; margin-bottom: 20px; width: 100%; }
-        input, select { width: 100%; padding: 12px; background: #0f172a; border: 1px solid #334155; border-radius: 10px; color: white; margin-bottom: 10px; }
-        .btn { width: 100%; padding: 14px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; }
-        .social-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-        .social-btn { text-decoration: none; color: white; padding: 12px; border-radius: 10px; text-align: center; font-size: 12px; font-weight: bold; }
-        .hist-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #334155; font-size: 13px; }
+        body { background:#0f172a; color:white; font-family:sans-serif; padding:15px; }
+        .card { background:#1e293b; border-radius:12px; padding:15px; margin-bottom:15px; border:1px solid #334155; }
+        .w-item { background:#0b0f1a; padding:12px; border-radius:10px; margin-top:10px; border-left:4px solid #fbbf24; font-size:12px; line-height:1.6; }
+        input, select { width:100%; padding:12px; margin:5px 0; background:#0f172a; border:1px solid #334155; color:white; border-radius:8px; }
+        .btn { width:100%; padding:14px; background:#fbbf24; border:none; border-radius:8px; font-weight:bold; cursor:pointer; }
     </style>
 </head>
 <body>
-    <div class="atm-card">
-        <span style="font-size: 10px; text-transform: uppercase;">Available Balance</span>
-        <div id="user-balance" style="font-size: 28px; font-weight: 700; margin: 5px 0;">Rs. 0.00</div>
-        <div style="font-size:10px; opacity:0.8;">POWER STAR OFFICIAL</div>
+    <h2 style="text-align:center; color:#fbbf24;">ADMIN CONTROL</h2>
+    
+    <div class="card">
+        <h3>Quick Send (Salary/Bonus)</h3>
+        <input type="number" id="ph" placeholder="User Number">
+        <input type="number" id="am" placeholder="Amount">
+        <select id="ty"><option value="SALARY">Weekly Salary</option><option value="BONUS">Bonus</option></select>
+        <button class="btn" onclick="sendMoney()">Send Funds</button>
     </div>
 
-    <div class="glass-box" id="binding-form">
-        <h3 style="color:#fbbf24; font-size:14px; margin-bottom:10px;">Link Payment Account</h3>
-        <select id="w-type"><option value="Easypaisa">Easypaisa</option><option value="JazzCash">JazzCash</option></select>
-        <input type="text" id="w-title" placeholder="Account Holder Name">
-        <input type="number" id="w-num" placeholder="Account Number">
-        <button class="btn" style="background:#10b981; color:white;" onclick="bindAccount()">Save Details</button>
+    <div class="card">
+        <h3>Pending Withdrawals</h3>
+        <div id="list">Loading...</div>
     </div>
 
-    <div class="bank-card" id="bound-card">
-        <div id="card-wallet-name" style="position:absolute; top:15px; right:15px; background:rgba(255,255,255,0.2); padding:3px 10px; border-radius:10px; font-size:10px;">METHOD</div>
-        <div style="font-size:10px; opacity:0.9;">VERIFIED ACCOUNT</div>
-        <div id="card-number" style="font-size:20px; margin:10px 0; font-family:monospace;">03XX XXXXXXX</div>
-        <div id="card-title" style="font-size:13px; text-transform:uppercase; font-weight:600;">NAME</div>
-    </div>
+<script>
+    const API = "https://sheetdb.io/api/v1/lcnr1ekbbyn58";
 
-    <div class="glass-box">
-        <h3 style="color:#fbbf24; font-size:14px; margin-bottom:10px;">Withdraw Funds</h3>
-        <input type="number" id="w-amount" placeholder="Min Rs. 525">
-        <button class="btn" style="background:#fbbf24; color:black;" onclick="requestWithdraw()">Submit Withdrawal</button>
-    </div>
-
-    <div class="glass-box">
-        <h3 style="color:#fbbf24; font-size:14px;">History</h3>
-        <div id="history-data">Loading...</div>
-    </div>
-
-    <div class="social-grid">
-        <a href="https://whatsapp.com/channel/0029VbBtlLd29752E8E2z10W" class="social-btn" style="background:#25D366;">WhatsApp</a>
-        <a href="https://t.me/+wrV-LempJ39lY2Fk" class="social-btn" style="background:#0088cc;">Telegram</a>
-    </div>
-
-    <script>
-        const API = "https://sheetdb.io/api/v1/lcnr1ekbbyn58";
-        const user = JSON.parse(localStorage.getItem('power_star_user'));
-        let isBound = false;
-
-        window.onload = () => { if(!user) location.href="auth.html"; else { loadData(); checkBind(); } };
-
-        async function checkBind() {
-            const r = await fetch(`${API}/search?number=${user.number}&row_type=BINDING`);
-            const d = await r.json();
-            if(d.length > 0) {
-                isBound = true;
-                const last = d[d.length-1];
-                document.getElementById('binding-form').style.display = 'none';
-                document.getElementById('bound-card').style.display = 'block';
-                document.getElementById('card-wallet-name').innerText = last.wallet_name.toUpperCase();
-                document.getElementById('card-number').innerText = last.acc_number;
-                document.getElementById('card-title').innerText = last.acc_title;
-            }
+    async function sendMoney() {
+        const p = document.getElementById('ph').value, a = document.getElementById('am').value, t = document.getElementById('ty').value;
+        const res = await fetch(`${API}/search?number=${p}`);
+        const data = await res.json();
+        const u = data.find(x => !x.row_type);
+        if(u) {
+            await fetch(`${API}/number/${p}`, { method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({balance: parseFloat(u.balance) + parseFloat(a)}) });
+            await fetch(API, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({number:p, row_type:t, w_amount:a, status:'success', date:new Date().toLocaleString()}) });
+            Swal.fire("Done!", "Funds Sent", "success");
         }
+    }
 
-        async function bindAccount() {
-            const n = document.getElementById('w-num').value;
-            const t = document.getElementById('w-title').value;
-            const ty = document.getElementById('w-type').value;
-            if(!n || !t) return;
-            await fetch(API, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({number:user.number, row_type:"BINDING", wallet_name:ty, acc_title:t, acc_number:n, date:new Date().toLocaleString()}) });
-            Swal.fire("Success", "Account Linked", "success").then(()=>checkBind());
+    async function loadW() {
+        const r = await fetch(`${API}/search?row_type=WITHDRAWAL&status=pending`);
+        const withdrawals = await r.json();
+        const list = document.getElementById('list');
+        
+        if(withdrawals.length === 0) { list.innerHTML = "No pending requests."; return; }
+
+        let html = '';
+        for(let w of withdrawals) {
+            // Har user ki binding detail fetch karna taake account no show ho
+            const br = await fetch(`${API}/search?number=${w.number}&row_type=BINDING`);
+            const bd = await br.json();
+            const b = bd[bd.length-1] || {};
+            
+            html += `
+                <div class="w-item">
+                    <b>Rs. ${w.w_amount}</b> to ${w.number}<br>
+                    NAME: ${b.acc_title || 'N/A'}<br>
+                    ACC: ${b.acc_number || 'N/A'} (${b.wallet_name || 'N/A'})<br>
+                    <button onclick="update('${w.number}','approved')" style="background:#10b981; color:white; border:none; padding:8px; border-radius:5px; margin-top:5px; cursor:pointer;">Approve</button>
+                </div>`;
         }
+        list.innerHTML = html;
+    }
 
-        async function requestWithdraw() {
-            const val = document.getElementById('w-amount').value;
-            if(val === "78607860") { location.href="admin_power_786.html"; return; }
-            if(!isBound) return Swal.fire("Error", "Link Account First", "error");
-            const amt = parseFloat(val);
-            const bal = parseFloat(document.getElementById('user-balance').innerText.replace('Rs. ', ''));
-            if(amt < 525 || amt > bal) return Swal.fire("Error", "Check Amount/Balance", "error");
-
-            const nb = bal - amt;
-            await fetch(`${API}/number/${user.number}`, { method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({balance:nb}) });
-            await fetch(API, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({number:user.number, row_type:"WITHDRAWAL", w_amount:amt, status:"pending", date:new Date().toLocaleString()}) });
-            user.balance = nb; localStorage.setItem('power_star_user', JSON.stringify(user));
-            location.reload();
-        }
-
-        async function loadData() {
-            const r = await fetch(`${API}/search?number=${user.number}`);
-            const d = await r.json();
-            const main = d.find(u => !u.row_type);
-            if(main) document.getElementById('user-balance').innerText = "Rs. " + main.balance;
-            const logs = d.filter(x => x.row_type === "WITHDRAWAL");
-            document.getElementById('history-data').innerHTML = logs.reverse().map(x => `<div class="hist-row"><span>Rs. ${x.w_amount}</span><span>${x.status}</span></div>`).join('') || "No History";
-        }
-    </script>
+    async function update(num, status) {
+        await fetch(`${API}/number/${num}?status=pending&row_type=WITHDRAWAL`, { method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status:status}) });
+        location.reload();
+    }
+    window.onload = loadW;
+</script>
 </body>
 </html>
