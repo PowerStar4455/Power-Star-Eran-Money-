@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Power Star</title>
+    <title>Power Star Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
+        /* --- ORIGINAL DESIGN MAINTAINED --- */
         body { background: #0f172a; color: white; font-family: 'Poppins', sans-serif; margin: 0; padding-bottom: 90px; }
         .header-container { padding: 15px; }
         .header-card { 
@@ -18,28 +19,37 @@
         }
         .top-row { display: flex; justify-content: space-between; align-items: flex-start; }
         .u-id { background: rgba(0,0,0,0.08); padding: 8px 12px; border-radius: 50px; font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; }
-        .hist-btn { background: #1e293b; color: #f1c40f; width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; }
+        .hist-btn { background: #1e293b; color: #f1c40f; width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; transition: 0.3s; }
+        .hist-btn:active { transform: scale(0.9); }
+        
         .balance-box { font-size: 40px; font-weight: 800; margin: 10px 0; font-family: 'Courier New', monospace; }
-        #admin-ctrl { display: none; padding: 0 20px; margin: 20px 0; }
-        .admin-btn { 
-            width: 100%; padding: 16px; background: #ef4444; color: white; 
-            border: none; border-radius: 20px; font-weight: bold; 
-            box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4); 
-            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
-        }
-        .ann-container { padding: 0 15px; }
+        .syncing { opacity: 0.5; filter: blur(1px); }
+
+        /* --- 💯 PROFESSIONAL ANNOUNCEMENT BOX --- */
+        .ann-container { padding: 0 15px; margin-top: 5px; }
         .ann-card {
-            background: #1e293b; border-radius: 35px;
-            border: 1px solid rgba(255,255,255,0.05); min-height: 180px;
+            background: #1e293b; border-radius: 30px;
+            border: 1px solid rgba(255,255,255,0.05); min-height: 160px;
             display: flex; align-items: center; justify-content: center;
-            overflow: hidden; padding: 20px; box-sizing: border-box;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
+            overflow: hidden; position: relative;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
         }
-        #ann-img { width: 100%; border-radius: 20px; display: none; }
+        /* Image Adjustment: Har size ki pic fit hogi */
+        #ann-img { 
+            width: 100%; height: 100%; 
+            object-fit: cover; /* Ye pic ko kharab nahi hone deta */
+            display: none; 
+            border-radius: 25px;
+        }
+        #ann-msg { padding: 20px; text-align: center; color: #94a3b8; font-size: 14px; }
+
         .nav { position: fixed; bottom: 0; width: 100%; background: #1e293b; display: flex; justify-content: space-around; padding: 15px 0; border-top: 2px solid #f1c40f; z-index: 1000; }
         .nav a { color: #94a3b8; text-decoration: none; font-size: 11px; text-align: center; flex: 1; }
         .nav a.active { color: #f1c40f; font-weight: bold; }
         .nav i { font-size: 22px; display: block; margin-bottom: 5px; }
+
+        #admin-ctrl { display: none; padding: 0 15px; margin-top: 15px; }
+        .admin-btn { width: 100%; padding: 15px; background: #ef4444; color: white; border: none; border-radius: 20px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -47,26 +57,25 @@
     <div class="header-container">
         <div class="header-card">
             <div class="top-row">
-                <div class="u-id" onclick="copyID()">ID: <span id="u-num">Loading...</span> <i class="far fa-copy"></i></div>
-                <div class="hist-btn"><i class="fas fa-history"></i></div>
+                <div class="u-id" onclick="copyID()">ID: <span id="u-num">...</span> <i class="far fa-copy"></i></div>
+                <div class="hist-btn" onclick="window.location.href='history.html'"><i class="fas fa-history"></i></div>
             </div>
             <h2 id="u-name" style="margin:15px 0 0;">Hi, User</h2>
-            <p style="font-size: 11px; letter-spacing: 1px; margin-top:5px; opacity:0.7;">AVAILABLE BALANCE</p>
-            <div class="balance-box">Rs. <span id="u-balance">0.00</span></div>
+            <p style="font-size: 10px; letter-spacing: 2px; margin-top:5px; opacity:0.8;">PKR AVAILABLE BALANCE</p>
+            <div class="balance-box" id="balance-container">Rs. <span id="u-balance">0.00</span></div>
         </div>
     </div>
 
     <div id="admin-ctrl">
-        <button class="admin-btn" onclick="window.location.href='admin_control.html'">
-            <i class="fas fa-user-shield"></i> OPEN ADMIN CONTROL
-        </button>
+        <button class="admin-btn" onclick="window.location.href='admin_control.html'"><i class="fas fa-user-shield"></i> ADMIN PANEL</button>
     </div>
 
     <div class="ann-container">
-        <div class="ann-card">
-            <div id="ann-msg" style="text-align:center; color:#94a3b8;">
-                <i class="fas fa-bullhorn" style="font-size:24px; margin-bottom:10px;"></i><br>
-                Official announcements will appear here.
+        <div class="ann-card" id="ann-card-box">
+            <img src="" id="ann-img" alt="Announcement">
+            <div id="ann-msg">
+                <i class="fas fa-bullhorn" style="font-size:24px; margin-bottom:10px; color:#f1c40f;"></i><br>
+                <span>Loading latest updates...</span>
             </div>
         </div>
     </div>
@@ -84,42 +93,54 @@
         window.onload = async function() {
             const userData = localStorage.getItem('power_star_user');
             if(!userData) { window.location.href = "auth.html"; return; }
-            
             let user = JSON.parse(userData);
 
-            // --- ADMIN LOGIC (UNTOUCHED) ---
-            const myNum = String(user.number).trim();
-            if(myNum === "3052424335" || myNum === "3082424335") {
+            // Admin Visibility
+            if(["3052424335", "3082424335"].includes(String(user.number))) {
                 document.getElementById('admin-ctrl').style.display = 'block';
             }
-            
-            // Priority: user_id (AQ-ID) else Mobile Number
+
+            // UI Display
             document.getElementById('u-num').innerText = user.user_id || user.number;
             document.getElementById('u-name').innerText = "Hi, " + (user.name || "User");
-            
-            // Initial Balance Display (Safe from NaN)
-            let b = parseFloat(user.balance);
-            document.getElementById('u-balance').innerText = isNaN(b) ? "0.00" : b.toFixed(2);
+            document.getElementById('u-balance').innerText = parseFloat(user.balance || 0).toFixed(2);
+
+            // Sync Fresh Data
+            const bBox = document.getElementById('balance-container');
+            bBox.classList.add('syncing');
 
             try {
-                // Fetching fresh balance from API
+                // 1. Fetch User Data
                 const res = await fetch(`${API}/search?number=${user.number}`);
                 const data = await res.json();
                 if(data.length > 0) {
                     const fresh = data[0];
-                    let fb = parseFloat(fresh.balance);
-                    document.getElementById('u-balance').innerText = isNaN(fb) ? "0.00" : fb.toFixed(2);
-                    
-                    // Keep the storage updated with fresh data
+                    document.getElementById('u-balance').innerText = parseFloat(fresh.balance || 0).toFixed(2);
                     localStorage.setItem('power_star_user', JSON.stringify(fresh));
                 }
-            } catch(e) { console.log("Sync failed"); }
+
+                // 2. Fetch Announcements (Professional Tip: Alag sheet rakhen ya isi ka koi fix row use karein)
+                // Farz karein aapne ek sheet banayi hai 'announcements' ke naam se
+                // Filhal main demo logic de raha hoon:
+                const annImg = ""; // Admin se image URL aayega
+                const annText = "Welcome to Power Star! Start earning today."; 
+
+                if(annImg) {
+                    document.getElementById('ann-img').src = annImg;
+                    document.getElementById('ann-img').style.display = 'block';
+                    document.getElementById('ann-msg').style.display = 'none';
+                } else {
+                    document.getElementById('ann-msg').querySelector('span').innerText = annText;
+                }
+
+            } catch(e) { console.log("Update Error"); }
+            finally { bBox.classList.remove('syncing'); }
         }
 
         function copyID() {
             const idVal = document.getElementById('u-num').innerText;
             navigator.clipboard.writeText(idVal);
-            Swal.fire({ text: "ID Copied!", icon: "success", timer: 1000, showConfirmButton: false });
+            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'ID Copied!', showConfirmButton: false, timer: 1500 });
         }
     </script>
 </body>
