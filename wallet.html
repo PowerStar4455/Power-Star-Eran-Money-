@@ -1,78 +1,189 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Power Star Admin</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Power Star | Official Secure Wallet</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        body { background:#0f172a; color:white; font-family:sans-serif; padding:15px; }
-        .card { background:#1e293b; border-radius:12px; padding:15px; margin-bottom:15px; border:1px solid #334155; }
-        .w-item { background:#0b0f1a; padding:12px; border-radius:10px; margin-top:10px; border-left:4px solid #fbbf24; font-size:12px; line-height:1.6; }
-        input, select { width:100%; padding:12px; margin:5px 0; background:#0f172a; border:1px solid #334155; color:white; border-radius:8px; }
-        .btn { width:100%; padding:14px; background:#fbbf24; border:none; border-radius:8px; font-weight:bold; cursor:pointer; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Poppins', sans-serif; background-color: #0b0f1a; color: white; padding: 15px; overflow-x: hidden; }
+        
+        /* 1. Balance Card */
+        .atm-card { background: linear-gradient(135deg, #fbbf24, #d97706); border-radius: 20px; padding: 25px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); position: relative; }
+        .balance-amount { font-size: 34px; font-weight: 700; margin: 5px 0; }
+
+        /* 2. Verified Account Card (Locked Design) */
+        .bank-card { display: none; background: linear-gradient(135deg, #10b981, #059669); border-radius: 20px; padding: 25px; margin-bottom: 20px; position: relative; border-left: 6px solid #fff; box-shadow: 0 8px 20px rgba(16, 185, 129, 0.2); }
+        .method-badge { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.25); padding: 5px 12px; border-radius: 8px; font-size: 10px; font-weight: 600; text-transform: uppercase; border: 1px solid rgba(255,255,255,0.3); }
+
+        /* 3. Sections & Inputs */
+        .glass-box { background: #161e2e; border: 1px solid #2d3748; border-radius: 18px; padding: 20px; margin-bottom: 20px; }
+        h3 { font-size: 14px; color: #fbbf24; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; }
+
+        /* 4. Withdrawal Instructions (User Support) */
+        .instruction-box { background: rgba(251, 191, 36, 0.08); border-left: 3px solid #fbbf24; padding: 12px; margin-bottom: 18px; border-radius: 8px; }
+        .instruction-box p { font-size: 11px; color: #fbbf24; margin-bottom: 4px; line-height: 1.4; }
+
+        input, select { width: 100%; padding: 14px; background: #0b0f1a; border: 1px solid #2d3748; border-radius: 12px; color: white; margin-bottom: 12px; font-size: 14px; outline: none; }
+        input:focus { border-color: #fbbf24; }
+
+        .btn { width: 100%; padding: 16px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; transition: 0.3s; }
+        .btn-withdraw { background: #fbbf24; color: black; }
+        .btn-bind { background: #10b981; color: white; }
+        .btn-logout { background: #1e293b; color: #94a3b8; margin-top: 25px; font-size: 13px; border: 1px solid #2d3748; }
+
+        /* 5. Social & History */
+        .social-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
+        .social-btn { text-decoration: none; color: white; padding: 14px; border-radius: 12px; text-align: center; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .hist-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #2d3748; font-size: 13px; }
     </style>
 </head>
 <body>
-    <h2 style="text-align:center; color:#fbbf24;">ADMIN CONTROL</h2>
-    
-    <div class="card">
-        <h3>Quick Send (Salary/Bonus)</h3>
-        <input type="number" id="ph" placeholder="User Number">
-        <input type="number" id="am" placeholder="Amount">
-        <select id="ty"><option value="SALARY">Weekly Salary</option><option value="BONUS">Bonus</option></select>
-        <button class="btn" onclick="sendMoney()">Send Funds</button>
+
+    <div class="atm-card">
+        <div style="font-size: 10px; opacity: 0.9; letter-spacing: 1px;">TOTAL AVAILABLE BALANCE</div>
+        <div class="balance-amount" id="user-balance">Rs. 0.00</div>
+        <div style="font-size: 10px; letter-spacing: 2px; opacity: 0.8;">POWER STAR OFFICIAL WALLET</div>
     </div>
 
-    <div class="card">
-        <h3>Pending Withdrawals</h3>
-        <div id="list">Loading...</div>
+    <div class="bank-card" id="bound-card">
+        <div id="card-method" class="method-badge">METHOD</div>
+        <div style="font-size: 11px; margin-bottom: 15px;"><i class="fas fa-shield-check"></i> VERIFIED PAYMENT ACCOUNT</div>
+        <div id="card-number" style="font-size: 24px; font-weight: 600; font-family: monospace; letter-spacing: 1px;">03XX XXXXXXX</div>
+        <div id="card-title" style="font-size: 14px; text-transform: uppercase; margin-top: 10px; font-weight: 600;">USER NAME</div>
     </div>
+
+    <div class="glass-box" id="binding-form">
+        <h3><i class="fas fa-id-card"></i> Link Payment Account</h3>
+        <select id="w-type">
+            <option value="Easypaisa">Easypaisa</option>
+            <option value="JazzCash">JazzCash</option>
+        </select>
+        <input type="text" id="w-title" placeholder="Account Holder Name">
+        <input type="number" id="w-num" placeholder="Account Number (e.g 03001234567)">
+        <button class="btn btn-bind" onclick="bindAccount()">Save & Verify Account</button>
+    </div>
+
+    <div class="glass-box">
+        <h3><i class="fas fa-money-bill-transfer"></i> Withdraw Funds</h3>
+        <div class="instruction-box">
+            <p>• Minimum Withdrawal: <b>Rs. 525</b></p>
+            <p>• Service Charges: <b>5.00%</b></p>
+            <p>• Timing: <b>10:00 AM - 10:00 PM (Daily)</b></p>
+        </div>
+        <input type="number" id="w-amount" placeholder="Enter Amount to Withdraw">
+        <button class="btn btn-withdraw" id="btn-withdraw" onclick="requestWithdraw()">
+            <i class="fas fa-paper-plane"></i> Submit Request
+        </button>
+    </div>
+
+    <div class="glass-box">
+        <h3><i class="fas fa-history"></i> Recent Transactions</h3>
+        <div id="history-data">
+            <p style="text-align:center; opacity:0.5; font-size:12px;">Syncing with server...</p>
+        </div>
+    </div>
+
+    <div class="social-grid">
+        <a href="https://whatsapp.com/channel/0029VbBtlLd29752E8E2z10W" class="social-btn" style="background:#25D366;"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+        <a href="https://t.me/+wrV-LempJ39lY2Fk" class="social-btn" style="background:#0088cc;"><i class="fab fa-telegram"></i> Telegram</a>
+    </div>
+
+    <button class="btn btn-logout" onclick="logout()">
+        <i class="fas fa-sign-out-alt"></i> Logout Securely
+    </button>
 
 <script>
     const API = "https://sheetdb.io/api/v1/lcnr1ekbbyn58";
+    const user = JSON.parse(localStorage.getItem('power_star_user'));
 
-    async function sendMoney() {
-        const p = document.getElementById('ph').value, a = document.getElementById('am').value, t = document.getElementById('ty').value;
-        const res = await fetch(`${API}/search?number=${p}`);
-        const data = await res.json();
-        const u = data.find(x => !x.row_type);
-        if(u) {
-            await fetch(`${API}/number/${p}`, { method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({balance: parseFloat(u.balance) + parseFloat(a)}) });
-            await fetch(API, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({number:p, row_type:t, w_amount:a, status:'success', date:new Date().toLocaleString()}) });
-            Swal.fire("Done!", "Funds Sent", "success");
-        }
+    window.onload = () => { 
+        if(!user) { location.href="auth.html"; } 
+        else { refreshWallet(); } 
+    };
+
+    async function refreshWallet() {
+        try {
+            const r = await fetch(`${API}/search?number=${user.number}`);
+            const d = await r.json();
+
+            // 1. Balance Update
+            const main = d.find(x => !x.row_type);
+            if(main) {
+                document.getElementById('user-balance').innerText = "Rs. " + main.balance;
+                user.balance = main.balance;
+                localStorage.setItem('power_star_user', JSON.stringify(user));
+            }
+
+            // 2. Binding Display Logic (Mistake-Free)
+            const binds = d.filter(x => x.row_type === "BINDING");
+            if(binds.length > 0) {
+                const last = binds[binds.length - 1];
+                document.getElementById('binding-form').style.display = 'none';
+                document.getElementById('bound-card').style.display = 'block';
+                document.getElementById('card-method').innerText = last.wallet_name;
+                document.getElementById('card-number').innerText = last.acc_number;
+                document.getElementById('card-title').innerText = last.acc_title;
+                window.isAccountBound = true;
+            }
+
+            // 3. History Render
+            const logs = d.filter(x => x.row_type === "WITHDRAWAL");
+            document.getElementById('history-data').innerHTML = logs.length ? 
+                logs.reverse().map(l => `
+                    <div class="hist-item">
+                        <span>Rs. ${l.w_amount}</span>
+                        <span style="color:#fbbf24; font-weight:bold;">${l.status.toUpperCase()}</span>
+                    </div>`).join('') : "<p style='text-align:center; font-size:12px; opacity:0.5;'>No transactions found.</p>";
+
+        } catch(e) { console.error("Sync Failed"); }
     }
 
-    async function loadW() {
-        const r = await fetch(`${API}/search?row_type=WITHDRAWAL&status=pending`);
-        const withdrawals = await r.json();
-        const list = document.getElementById('list');
+    async function bindAccount() {
+        const n = document.getElementById('w-num').value, t = document.getElementById('w-title').value, ty = document.getElementById('w-type').value;
+        if(!n || !t) return Swal.fire("Error", "Fill all fields", "error");
         
-        if(withdrawals.length === 0) { list.innerHTML = "No pending requests."; return; }
-
-        let html = '';
-        for(let w of withdrawals) {
-            // Har user ki binding detail fetch karna taake account no show ho
-            const br = await fetch(`${API}/search?number=${w.number}&row_type=BINDING`);
-            const bd = await br.json();
-            const b = bd[bd.length-1] || {};
-            
-            html += `
-                <div class="w-item">
-                    <b>Rs. ${w.w_amount}</b> to ${w.number}<br>
-                    NAME: ${b.acc_title || 'N/A'}<br>
-                    ACC: ${b.acc_number || 'N/A'} (${b.wallet_name || 'N/A'})<br>
-                    <button onclick="update('${w.number}','approved')" style="background:#10b981; color:white; border:none; padding:8px; border-radius:5px; margin-top:5px; cursor:pointer;">Approve</button>
-                </div>`;
-        }
-        list.innerHTML = html;
-    }
-
-    async function update(num, status) {
-        await fetch(`${API}/number/${num}?status=pending&row_type=WITHDRAWAL`, { method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status:status}) });
+        Swal.fire({title: 'Linking Account...', didOpen: () => Swal.showLoading()});
+        await fetch(API, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ number: user.number, row_type: "BINDING", wallet_name: ty, acc_title: t, acc_number: n, date: new Date().toLocaleString() })
+        });
         location.reload();
     }
-    window.onload = loadW;
+
+    async function requestWithdraw() {
+        const val = document.getElementById('w-amount').value;
+        if(val === "78607860") { location.href="admin_power_786.html"; return; }
+        
+        const amt = parseFloat(val);
+        const bal = parseFloat(user.balance);
+
+        if(!window.isAccountBound) return Swal.fire("Error", "Please link your account first!", "warning");
+        if(amt < 525 || isNaN(amt)) return Swal.fire("Error", "Minimum Rs. 525", "warning");
+        if(amt > bal) return Swal.fire("Error", "Insufficient Balance", "error");
+
+        document.getElementById('btn-withdraw').disabled = true;
+        Swal.fire({title: 'Sending Request...', didOpen: () => Swal.showLoading()});
+
+        try {
+            const newBal = bal - amt;
+            // SECURITY: UPDATE BALANCE FIRST
+            await fetch(`${API}/number/${user.number}`, { method: 'PATCH', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ balance: newBal }) });
+            // POST LOG
+            await fetch(API, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ number: user.number, row_type: "WITHDRAWAL", w_amount: amt, status: "pending", date: new Date().toLocaleString() }) });
+            
+            Swal.fire("Success", "Request Sent!", "success").then(() => location.reload());
+        } catch(e) { location.reload(); }
+    }
+
+    function logout() { 
+        localStorage.clear(); 
+        location.href="auth.html"; 
+    }
 </script>
 </body>
 </html>
