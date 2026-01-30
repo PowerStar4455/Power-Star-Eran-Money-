@@ -1,63 +1,169 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Control</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Power Star | ID Admin Control</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        body { background:#0f172a; color:white; font-family:sans-serif; padding:15px; }
-        .card { background:#1e293b; border-radius:12px; padding:15px; margin-bottom:15px; border:1px solid #334155; }
-        input, select { width:100%; padding:10px; margin:5px 0; background:#0f172a; border:1px solid #334155; color:white; border-radius:5px; }
-        .btn { width:100%; padding:12px; background:#fbbf24; border:none; border-radius:5px; font-weight:bold; cursor:pointer; }
-        .w-item { background:#0f172a; padding:10px; border-radius:8px; margin-top:10px; border-left:4px solid #fbbf24; font-size:12px; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Poppins', sans-serif; background: #0b0f1a; color: white; padding: 15px; }
+        .admin-card { background: #161e2e; border: 1px solid #2d3748; border-radius: 15px; padding: 20px; margin-bottom: 20px; }
+        h2 { color: #fbbf24; text-align: center; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; }
+        h3 { font-size: 14px; color: #fbbf24; margin-bottom: 15px; border-bottom: 1px solid #2d3748; padding-bottom: 5px; }
+        
+        input, select { width: 100%; padding: 12px; margin-bottom: 10px; background: #0b0f1a; border: 1px solid #334155; color: white; border-radius: 8px; outline: none; }
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.3s; }
+        .btn-send { background: #fbbf24; color: black; }
+        .btn-search { background: #3b82f6; color: white; margin-top: 5px; }
+
+        .w-item { background: #0b0f1a; padding: 15px; border-radius: 12px; margin-top: 10px; border-left: 5px solid #fbbf24; font-size: 12px; }
+        #search-result { background: #0f172a; padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 12px; display: none; border: 1px dashed #334155; }
     </style>
 </head>
 <body>
-    <h2 style="color:#fbbf24; text-align:center;">ADMIN MASTER</h2>
-    
-    <div class="card">
-        <h3>Send Reward/Salary</h3>
-        <input type="number" id="ph" placeholder="User Number">
-        <input type="number" id="am" placeholder="Amount">
-        <select id="ty"><option value="SALARY">Salary</option><option value="BONUS">Bonus</option></select>
-        <button class="btn" onclick="sendMoney()">Send Now</button>
+
+    <h2>Admin Master</h2>
+
+    <div class="admin-card">
+        <h3><i class="fas fa-user-search"></i> Search by Referral ID</h3>
+        <input type="text" id="search-id" placeholder="Enter Referral ID (e.g. AQ4817)">
+        <button class="btn btn-search" onclick="searchByID()">Check Member</button>
+        
+        <div id="search-result"></div>
+
+        <div style="margin-top: 20px;">
+            <h3>Transfer Funds</h3>
+            <input type="number" id="send-amount" placeholder="Amount (PKR)">
+            <select id="fund-type">
+                <option value="SALARY">Salary</option>
+                <option value="REWARD">Reward</option>
+                <option value="COMMISSION">Commission</option>
+                <option value="BONUS">Bonus</option>
+            </select>
+            <button class="btn btn-send" id="btn-process" onclick="handleFunds()">Transfer Now</button>
+        </div>
     </div>
 
-    <div class="card">
-        <h3>Withdraw Requests</h3>
-        <div id="list">Loading...</div>
+    <div class="admin-card">
+        <h3>Pending Withdrawals</h3>
+        <div id="withdrawal-list">Loading...</div>
     </div>
 
 <script>
     const API = "https://sheetdb.io/api/v1/lcnr1ekbbyn58";
 
-    async function sendMoney() {
-        const p = document.getElementById('ph').value;
-        const a = document.getElementById('am').value;
-        const t = document.getElementById('ty').value;
-        const res = await fetch(`${API}/search?number=${p}`);
+    // 1. Search Logic using Referral ID (Column G)
+    async function searchByID() {
+        const id = document.getElementById('search-id').value;
+        if(!id) return;
+        
+        const res = await fetch(`${API}/search?user_id=${id}`);
         const data = await res.json();
-        const u = data.find(x => !x.row_type);
-        if(u) {
-            const nb = parseFloat(u.balance) + parseFloat(a);
-            await fetch(`${API}/number/${p}`, { method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({balance:nb}) });
-            await fetch(API, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({number:p, row_type:t, w_amount:a, status:'success', date:new Date().toLocaleString()}) });
-            Swal.fire("Sent!", "Balance Updated", "success");
+        const user = data.find(x => !x.row_type);
+        const resultDiv = document.getElementById('search-result');
+
+        if(user) {
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `
+                <b>Name:</b> ${user.name}<br>
+                <b>Phone:</b> ${user.number}<br>
+                <b>Current Balance:</b> Rs. ${user.balance}<br>
+                <b>Status:</b> ${user.status || 'Active'}
+            `;
+            // Store number for fund transfer internally
+            window.targetNumber = user.number;
+        } else {
+            Swal.fire("Error", "Referral ID not found!", "error");
+            resultDiv.style.display = 'none';
         }
     }
 
-    async function loadW() {
-        const r = await fetch(`${API}/search?row_type=WITHDRAWAL&status=pending`);
-        const d = await r.json();
-        // Har withdraw request ke sath user ki binding details bhi fetch karein
-        document.getElementById('list').innerHTML = d.map(x => `
-            <div class="w-item">
-                User: ${x.number} | <b>Rs. ${x.w_amount}</b><br>
-                <button onclick="approve('${x.number}','approved')" style="background:#10b981; color:white; border:none; padding:5px; margin-top:5px; border-radius:3px;">Approve</button>
-            </div>
-        `).join('') || "No Requests";
+    // 2. Fund Transfer Logic (Balance Update + Transaction Log)
+    async function handleFunds() {
+        const id = document.getElementById('search-id').value;
+        const amt = document.getElementById('send-amount').value;
+        const type = document.getElementById('fund-type').value;
+
+        if(!id || !amt || !window.targetNumber) {
+            return Swal.fire("Error", "Search ID first and enter amount", "warning");
+        }
+
+        const btn = document.getElementById('btn-process');
+        btn.disabled = true;
+        Swal.fire({title: 'Updating User...', didOpen: () => Swal.showLoading()});
+
+        try {
+            // Fetch latest balance to be safe
+            const res = await fetch(`${API}/search?user_id=${id}`);
+            const data = await res.json();
+            const user = data.find(x => !x.row_type);
+
+            const newBal = parseFloat(user.balance) + parseFloat(amt);
+
+            // PATCH: Update main row balance
+            await fetch(`${API}/number/${user.number}`, {
+                method: 'PATCH',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ balance: newBal })
+            });
+
+            // POST: Create log for user history
+            await fetch(API, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ 
+                    number: user.number, 
+                    row_type: type, 
+                    w_amount: amt, 
+                    status: 'success', 
+                    date: new Date().toLocaleString() 
+                })
+            });
+
+            Swal.fire("Done!", `${amt} added as ${type}`, "success");
+            searchByID(); // Refresh UI
+        } catch(e) {
+            Swal.fire("Error", "Server Error", "error");
+        } finally { btn.disabled = false; }
     }
-    window.onload = loadW;
+
+    // 3. Load Withdrawals with Member Details
+    async function loadWithdrawals() {
+        const res = await fetch(`${API}/search?row_type=WITHDRAWAL&status=pending`);
+        const withdrawals = await res.json();
+        const list = document.getElementById('withdrawal-list');
+        
+        if(withdrawals.length === 0) { list.innerHTML = "No requests."; return; }
+
+        let html = '';
+        for(let w of withdrawals) {
+            const bindRes = await fetch(`${API}/search?number=${w.number}&row_type=BINDING`);
+            const bindData = await bindRes.json();
+            const b = bindData[bindData.length - 1] || {};
+
+            html += `
+                <div class="w-item">
+                    <b>ID:</b> ${w.number} | <b>Rs. ${w.w_amount}</b><br>
+                    <b>Acc:</b> ${b.acc_number} (${b.wallet_name})<br>
+                    <b>Title:</b> ${b.acc_title}<br>
+                    <button class="btn btn-send" style="background:#10b981; color:white; padding:8px; margin-top:8px;" onclick="approve('${w.number}')">Approve</button>
+                </div>`;
+        }
+        list.innerHTML = html;
+    }
+
+    async function approve(num) {
+        await fetch(`${API}/number/${num}?status=pending&row_type=WITHDRAWAL`, {
+            method: 'PATCH',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ status: 'success' })
+        });
+        location.reload();
+    }
+
+    window.onload = loadWithdrawals;
 </script>
 </body>
 </html>
