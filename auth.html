@@ -7,46 +7,38 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* 100% ORIGINAL STYLE MAINTAINED */
+        /* 100% ORIGINAL CSS + FINAL FIXES */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { background: #0f172a; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; }
         .auth-box { background: #1e293b; padding: 25px; border-radius: 20px; width: 100%; max-width: 380px; text-align: center; border: 1px solid #fbbf24; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         h2 { color: #fbbf24; margin-bottom: 20px; }
         
-        /* +92 Prefix Styling */
+        /* Input Group for +92 */
         .input-group { position: relative; display: flex; align-items: center; margin: 10px 0; }
-        .prefix { position: absolute; left: 12px; color: #fbbf24; font-weight: bold; border-right: 1px solid #334155; padding-right: 8px; z-index: 10; }
+        .prefix { position: absolute; left: 12px; color: #fbbf24; font-weight: bold; border-right: 1px solid #334155; padding-right: 8px; z-index: 5; }
         .input-group input { padding-left: 55px !important; margin: 0; }
         
-        /* Eye Icon Styling */
+        /* Password Eye Icon */
         .pass-group { position: relative; width: 100%; margin: 10px 0; }
         .pass-group input { margin: 0; padding-right: 45px; }
-        .eye-btn { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8; cursor: pointer; }
+        .eye-btn { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8; cursor: pointer; z-index: 5; }
 
         input { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #334155; background: #0f172a; color: white; outline: none; font-size: 16px; }
         button { width: 100%; padding: 15px; background: #fbbf24; color: black; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; margin-top: 10px; font-size: 16px; }
         
-        /* Device ID Toggle Section */
-        .dev-section { margin-top: 25px; padding: 10px; background: #0f172a; border-radius: 10px; border: 1px dashed #334155; font-size: 11px; color: #64748b; display: flex; justify-content: space-between; align-items: center; }
-        .dev-txt { font-family: monospace; }
+        /* 💯 T-Box Alignment Fix */
+        .t-box { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 18px 0; font-size: 13px; color: #94a3b8; }
+        .t-box input { width: 18px !important; height: 18px !important; margin: 0 !important; cursor: pointer; flex-shrink: 0; }
+        .t-box label { cursor: pointer; line-height: 1.2; text-align: left; }
+        .t-box a { color: #fbbf24; text-decoration: underline; font-weight: bold; }
+
+        /* Device ID Section */
+        .dev-section { margin-top: 25px; padding: 12px; background: #0f172a; border-radius: 10px; border: 1px dashed #334155; font-size: 11px; color: #64748b; display: flex; justify-content: space-between; align-items: center; }
         .dev-icons i { color: #fbbf24; cursor: pointer; margin-left: 10px; font-size: 14px; }
-.t-box { 
-    display: flex; 
-    align-items: center; /* Checkbox aur text ko ek line mein laane ke liye */
-    justify-content: center; 
-    gap: 10px; 
-    margin: 15px 0; 
-    font-size: 12px; 
-    color: #94a3b8; 
-}
-.t-box input { 
-    width: 18px; 
-    height: 18px; 
-    margin: 0; 
-    cursor: pointer; 
-}
-.t-box label { cursor: pointer; }
-        
+
+        .hidden { display: none; }
+        .toggle-txt { margin-top: 20px; cursor: pointer; color: #94a3b8; font-size: 14px; }
+        .toggle-txt span { color: #fbbf24; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -78,16 +70,18 @@
                 <i class="fa-solid fa-eye eye-btn" onclick="togglePass('r-pass', this)"></i>
             </div>
             <input type="text" id="r-ref" placeholder="Referral Code">
+            
             <div class="t-box">
-    <input type="checkbox" id="t-check">
-    <label for="t-check">I agree to the <a href="terms.html" style="color:#fbbf24; text-decoration: underline;">Terms & Conditions</a></label>
+                <input type="checkbox" id="t-check">
+                <label for="t-check">I agree to the <a href="terms.html">Terms & Conditions</a></label>
             </div>
+
             <button id="r-btn" onclick="doRegister()">REGISTER</button>
             <p class="toggle-txt" onclick="toggle()">Have account? <span>Login</span></p>
         </div>
 
         <div class="dev-section">
-            <span>ID: <span id="dev-display" class="dev-txt">********</span></span>
+            <span>ID: <span id="dev-display">********</span></span>
             <div class="dev-icons">
                 <i class="fa-solid fa-circle-info" onclick="viewID()" title="Show ID"></i>
                 <i class="fa-solid fa-copy" onclick="copyID()" title="Copy ID"></i>
@@ -104,7 +98,6 @@
         function makeAQ() { return "AQ" + Math.floor(1000 + Math.random() * 9000); }
         function toggle() { document.getElementById('reg-form').classList.toggle('hidden'); document.getElementById('log-form').classList.toggle('hidden'); }
 
-        // 👁️ Toggle Password Visibility
         function togglePass(id, el) {
             const input = document.getElementById(id);
             if (input.type === "password") {
@@ -116,14 +109,12 @@
             }
         }
 
-        // ℹ️ View/Hide Device ID
         function viewID() {
             const disp = document.getElementById('dev-display');
             isViewed = !isViewed;
             disp.innerText = isViewed ? DEVICE : "********";
         }
 
-        // 📋 Copy Device ID
         function copyID() {
             navigator.clipboard.writeText(DEVICE);
             msg("Device ID Copied!", "success");
@@ -155,7 +146,7 @@
             const ref = document.getElementById('r-ref').value.trim();
             const isChecked = document.getElementById('t-check').checked;
 
-            if(!name || !num || !pass || !isChecked) return msg("Fill all fields", "info");
+            if(!name || !num || !pass || !isChecked) return msg("Complete all fields", "info");
             
             const btn = document.getElementById('r-btn');
             btn.innerText = "Processing..."; btn.disabled = true;
@@ -170,7 +161,7 @@
                     name, number: num, password: pass, referral: ref, 
                     balance: (ref ? 50 : 0), device_id: DEVICE, 
                     user_id: newAQ, status: "active", 
-                    date: new Date().toLocaleDateString('en-GB') // 💯 Proper Date Format
+                    date: new Date().toLocaleDateString('en-GB') 
                 }]};
 
                 const res = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)});
