@@ -1,4 +1,4 @@
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -78,7 +78,7 @@
     <div class="glass-box">
         <h3><i class="fas fa-history"></i> Withdrawal History</h3>
         <div id="history-container">
-            <p style="text-align:center; font-size:11px; opacity:0.5;">Loading transactions...</p>
+            <p style="text-align:center; font-size:11px; opacity:0.5;">No history available.</p>
         </div>
     </div>
 
@@ -87,7 +87,7 @@
         <a href="tg://resolve?domain=PowerStarOfficial" class="soc-btn" style="background:#0088cc;"><i class="fab fa-telegram"></i> Telegram</a>
     </div>
 
-    <button onclick="logout()" style="width:100%; background:var(--red); border:none; color:white; padding:15px; border-radius:14px; margin-top:20px; font-size:12px; font-weight:600; cursor:pointer; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);">SECURE LOGOUT</button>
+    <button onclick="logout()" style="width:100%; background:var(--red); border:none; color:white; padding:15px; border-radius:14px; margin-top:20px; font-size:12px; font-weight:600; cursor:pointer;">SECURE LOGOUT</button>
 </div>
 
 <script>
@@ -95,9 +95,11 @@
     let user = JSON.parse(localStorage.getItem('power_star_user'));
 
     window.onload = () => { 
-        if(!user) location.href="index.html"; 
-        else {
-            // Memory sync for UI
+        if(!user) {
+            location.href="index.html"; 
+        } else {
+            // Load local data immediately for speed
+            document.getElementById('user-balance').innerText = "Rs. " + (parseFloat(user.balance) || 0).toFixed(2);
             if(localStorage.getItem('ps_bound') === 'true') {
                 document.getElementById('binding-form').style.display = 'none';
                 document.getElementById('bound-card').style.display = 'block';
@@ -108,11 +110,16 @@
 
     async function refreshWallet() {
         try {
-            const r = await fetch(`${API}/search?number=${user.number}`);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 sec timeout
+
+            const r = await fetch(`${API}/search?number=${user.number}`, { signal: controller.signal });
             const data = await r.json();
+            clearTimeout(timeoutId);
+
             if(!Array.isArray(data)) return;
 
-            // Balance Update
+            // 1. Balance Sync
             const main = data.find(x => !x.row_type || x.row_type === "");
             if(main) {
                 const b = parseFloat(main.balance || 0);
@@ -123,7 +130,7 @@
                 localStorage.setItem('power_star_user', JSON.stringify(user));
             }
 
-            // Bind Card Details Update (Directly from Column M, N, O)
+            // 2. Card Data Sync (M, N, O)
             const bind = data.find(x => x.row_type === "BINDING");
             if(bind && bind.acc_number) {
                 document.getElementById('binding-form').style.display = 'none';
@@ -135,70 +142,63 @@
                 localStorage.setItem('ps_bound', 'true');
             }
 
-            // History Update
+            // 3. History Sync
             const logs = data.filter(x => x.row_type === "WITHDRAWAL");
-            const hContainer = document.getElementById('history-container');
             if(logs.length > 0) {
-                hContainer.innerHTML = logs.reverse().map(l => `
+                document.getElementById('history-container').innerHTML = logs.reverse().map(l => `
                     <div class="hist-item">
                         <div><b>Rs. ${l.w_amount}</b><br><small style="opacity:0.5; font-size:10px;">${l.date}</small></div>
                         <div style="text-align:right;"><span style="color:${l.status === 'pending' ? '#fbbf24' : '#10b981'}; font-weight:bold;">${l.status.toUpperCase()}</span></div>
                     </div>`).join('');
-            } else {
-                hContainer.innerHTML = "<p style='text-align:center; font-size:11px; opacity:0.5;'>No transactions available.</p>";
             }
-
-        } catch(e) { console.error("Sync Error"); }
+        } catch(e) { console.log("Network slow, using cached data."); }
     }
 
     async function bindAccount() {
         const n = document.getElementById('w-num').value, t = document.getElementById('w-title').value, ty = document.getElementById('w-type').value;
-        if(!n || !t) return Swal.fire("Required", "All fields are mandatory", "error");
+        if(!n || !t) return Swal.fire("Error", "Enter Name and Number", "error");
 
-        Swal.fire({title: 'Binding...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+        Swal.fire({title: 'Binding Account...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
         try {
             const res = await fetch(API, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ 
-                    number: user.number, 
-                    row_type: "BINDING", 
-                    wallet_name: ty, 
-                    acc_title: t, 
-                    acc_number: n, 
-                    date: new Date().toLocaleString() 
-                })
+                body: JSON.stringify({ number: user.number, row_type: "BINDING", wallet_name: ty, acc_title: t, acc_number: n, date: new Date().toLocaleString() })
             });
             if(res.ok) {
                 localStorage.setItem('ps_bound', 'true');
-                Swal.fire("Success", "Account Linked!", "success").then(() => location.reload());
+                Swal.fire("Success", "Bound!", "success").then(() => location.reload());
             }
-        } catch(e) { Swal.fire("Error", "Failed to bind", "error"); }
+        } catch(e) { Swal.fire("Error", "API Limit Reached", "error"); }
     }
 
     async function handleWithdraw() {
         const val = document.getElementById('w-amount').value;
         const amt = parseFloat(val);
+
         if(!window.isAccountBound && localStorage.getItem('ps_bound') !== 'true') return Swal.fire("Locked", "Bind account first", "warning");
         if(amt < 525 || isNaN(amt)) return Swal.fire("Error", "Min: Rs. 525", "error");
         if(amt > parseFloat(user.balance)) return Swal.fire("Error", "Low Balance", "error");
 
-        Swal.fire({title: 'Processing...', didOpen: () => Swal.showLoading()});
+        Swal.fire({title: 'Submitting...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
         try {
+            // PATCH Balance
             const res = await fetch(`${API}/number/${user.number}`, {
                 method: 'PATCH',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ balance: parseFloat(user.balance) - amt })
             });
+
             if(res.ok) {
+                // POST History
                 await fetch(API, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ number: user.number, row_type: "WITHDRAWAL", w_amount: amt, status: "pending", date: new Date().toLocaleString() })
                 });
-                Swal.fire("Success", "Submitted!", "success").then(() => location.reload());
+                Swal.fire("Success", "Request Sent!", "success").then(() => location.reload());
             }
-        } catch(e) { Swal.fire("Error", "Connection error", "error"); }
+        } catch(e) { Swal.fire("Error", "Server Timeout", "error"); }
     }
 
     function logout() { localStorage.clear(); location.href="index.html"; }
