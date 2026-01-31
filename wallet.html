@@ -77,127 +77,121 @@
     <div class="glass-box">
         <h3><i class="fas fa-history"></i> Withdrawal History</h3>
         <div id="history-container">
-            <p style="text-align:center; font-size:11px; opacity:0.5;">No history found.</p>
+            <p style="text-align:center; font-size:11px; opacity:0.5;">Syncing history...</p>
         </div>
     </div>
 
     <div style="display: flex; justify-content: space-between;">
         <a href="https://wa.me/923275323445" class="soc-btn" style="background:#25D366;"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-        <a href="tg://resolve?domain=PowerStarOfficial" class="soc-btn" style="background:#0088cc;"><i class="fab fa-telegram"></i> Telegram</a>
+        <a href="https://t.me/PowerStarOfficial" class="soc-btn" style="background:#0088cc;"><i class="fab fa-telegram"></i> Telegram</a>
     </div>
 
     <button onclick="logout()" style="width:100%; background:var(--red); border:none; color:white; padding:15px; border-radius:14px; margin-top:20px; font-weight:600;">SECURE LOGOUT</button>
 </div>
 
 <script>
-    const API = "https://sheetdb.io/api/v1/lcnr1ekbbyn58";
+    // Professional Setup with Secure API
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxZ1yoCCbcaw6FF0c5mSK79aTwgAmK0b8OCO_4zkkNc_V02lH_5alokOo2XcUYqBb1X2A/exec";
+    const AUTH_KEY = "POWER_STAR_786_SECURE";
     let user = JSON.parse(localStorage.getItem('power_star_user'));
 
     window.onload = () => { 
         if(!user) {
             location.href="index.html"; 
         } else {
-            // Speed fix: Load cache first
+            // Speed fix: Show cached balance first
             document.getElementById('user-balance').innerText = "Rs. " + (parseFloat(user.balance) || 0).toFixed(2);
-            if(localStorage.getItem('ps_bound') === 'true') {
-                document.getElementById('binding-form').style.display = 'none';
-                document.getElementById('bound-card').style.display = 'block';
-            }
             refreshWallet(); 
         }
     };
 
     async function refreshWallet() {
         try {
-            const r = await fetch(`${API}/search?number=${user.number}`);
+            const r = await fetch(SCRIPT_URL);
             const data = await r.json();
-            if(!Array.isArray(data)) return;
+            
+            // Sync Current User Data
+            const userData = data.filter(x => String(x.number) === String(user.number));
+            const mainRow = userData.find(x => !x.row_type || x.row_type === "REGISTRATION");
+            const bindRow = userData.find(x => x.row_type === "BINDING");
+            const withdrawalLogs = userData.filter(x => x.row_type === "WITHDRAWAL");
 
-            // Balance
-            const main = data.find(x => !x.row_type || x.row_type === "");
-            if(main) {
-                const b = parseFloat(main.balance || 0);
+            if(mainRow) {
+                const b = parseFloat(mainRow.balance || 0);
                 document.getElementById('user-balance').innerText = "Rs. " + b.toFixed(2);
-                document.getElementById('claimed-comm').innerText = "Rs. " + (main.claimed_comm || 0);
-                document.getElementById('total-profit').innerText = "Rs. " + (b + parseFloat(main.claimed_comm || 0)).toFixed(2);
+                document.getElementById('claimed-comm').innerText = "Rs. " + (mainRow.claimed_comm || 0);
+                document.getElementById('total-profit').innerText = "Rs. " + (b + parseFloat(mainRow.claimed_comm || 0)).toFixed(2);
                 user.balance = b;
                 localStorage.setItem('power_star_user', JSON.stringify(user));
             }
 
-            // Card details
-            const bind = data.find(x => x.row_type === "BINDING");
-            if(bind && bind.acc_number) {
+            if(bindRow && bindRow.acc_number) {
                 document.getElementById('binding-form').style.display = 'none';
                 document.getElementById('bound-card').style.display = 'block';
-                document.getElementById('card-method').innerText = (bind.wallet_name || "WALLET").toUpperCase();
-                document.getElementById('card-number').innerText = bind.acc_number;
-                document.getElementById('card-title').innerText = (bind.acc_title || "USER").toUpperCase();
+                document.getElementById('card-method').innerText = (bindRow.wallet_name || "WALLET").toUpperCase();
+                document.getElementById('card-number').innerText = bindRow.acc_number;
+                document.getElementById('card-title').innerText = (bindRow.acc_title || "USER").toUpperCase();
                 window.isAccountBound = true;
-                localStorage.setItem('ps_bound', 'true');
             }
 
-            // History
-            const logs = data.filter(x => x.row_type === "WITHDRAWAL");
-            if(logs.length > 0) {
-                document.getElementById('history-container').innerHTML = logs.reverse().map(l => `
+            if(withdrawalLogs.length > 0) {
+                document.getElementById('history-container').innerHTML = withdrawalLogs.reverse().map(l => `
                     <div class="hist-item">
-                        <div><b>Rs. ${l.w_amount}</b><br><small style="opacity:0.5;">${l.date}</small></div>
-                        <div style="text-align:right;"><span style="color:${l.status === 'pending' ? '#fbbf24' : '#10b981'}; font-weight:bold;">${l.status.toUpperCase()}</span></div>
+                        <div><b>Rs. ${l.w_amount}</b><br><small style="opacity:0.5;">${l.date || 'Today'}</small></div>
+                        <div style="text-align:right;"><span style="color:${l.status === 'pending' ? '#fbbf24' : '#10b981'}; font-weight:bold;">${(l.status || 'PENDING').toUpperCase()}</span></div>
                     </div>`).join('');
+            } else {
+                document.getElementById('history-container').innerHTML = '<p style="text-align:center; font-size:11px; opacity:0.5;">No history found.</p>';
             }
-        } catch(e) { console.log("Slow Sync"); }
+        } catch(e) { console.log("Sync failed, using cache."); }
     }
 
     async function handleWithdraw() {
-        const val = document.getElementById('w-amount').value;
-        const amt = parseFloat(val);
+        const amt = parseFloat(document.getElementById('w-amount').value);
+        if(!window.isAccountBound) return Swal.fire("Locked", "Please bind account first", "warning");
+        if(amt < 525 || isNaN(amt)) return Swal.fire("Error", "Minimum Rs. 525", "error");
+        if(amt > parseFloat(user.balance)) return Swal.fire("Error", "Insufficient Balance", "error");
 
-        if(!window.isAccountBound && localStorage.getItem('ps_bound') !== 'true') return Swal.fire("Locked", "Bind account first", "warning");
-        if(amt < 525 || isNaN(amt)) return Swal.fire("Error", "Min: Rs. 525", "error");
-        if(amt > parseFloat(user.balance)) return Swal.fire("Error", "Low Balance", "error");
+        Swal.fire({title: 'Processing...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
 
-        Swal.fire({title: 'Submitting...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+        const payload = {
+            key: AUTH_KEY,
+            number: user.number,
+            w_amount: amt,
+            row_type: "WITHDRAWAL"
+        };
 
         try {
-            // Anti-Hang Logic
-            const requests = [
-                fetch(API, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ number: user.number, row_type: "WITHDRAWAL", w_amount: amt, status: "pending", date: new Date().toLocaleString() })
-                }),
-                fetch(`${API}/number/${user.number}`, {
-                    method: 'PATCH',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ balance: parseFloat(user.balance) - amt })
-                })
-            ];
-
-            // 5 second timeout taake hang na ho
-            await Promise.race([
-                Promise.all(requests),
-                new Promise(resolve => setTimeout(() => resolve('timeout'), 5000))
-            ]);
-
-            Swal.fire("Success", "Withdrawal Submitted!", "success").then(() => location.reload());
-
-        } catch(e) {
-            Swal.fire("Note", "Request Received!", "success").then(() => location.reload());
-        }
+            fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) })
+            .then(() => {
+                // Local update to avoid delay
+                user.balance = parseFloat(user.balance) - amt;
+                localStorage.setItem('power_star_user', JSON.stringify(user));
+                Swal.fire("Success", "Withdrawal request sent!", "success").then(() => location.reload());
+            });
+        } catch(e) { Swal.fire("Error", "Network busy", "error"); }
     }
 
     async function bindAccount() {
         const n = document.getElementById('w-num').value, t = document.getElementById('w-title').value, ty = document.getElementById('w-type').value;
         if(!n || !t) return Swal.fire("Error", "Fill all fields", "error");
-        Swal.fire({title: 'Binding...', didOpen: () => Swal.showLoading()});
+        
+        Swal.fire({title: 'Linking...', didOpen: () => Swal.showLoading()});
+        
+        const payload = {
+            key: AUTH_KEY,
+            number: user.number,
+            row_type: "BINDING",
+            wallet_name: ty,
+            acc_title: t,
+            acc_number: n
+        };
+
         try {
-            await fetch(API, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ number: user.number, row_type: "BINDING", wallet_name: ty, acc_title: t, acc_number: n, date: new Date().toLocaleString() })
+            fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) })
+            .then(() => {
+                Swal.fire("Success", "Account Bound!", "success").then(() => location.reload());
             });
-            localStorage.setItem('ps_bound', 'true');
-            Swal.fire("Success", "Account Linked!", "success").then(() => location.reload());
         } catch(e) { location.reload(); }
     }
 
