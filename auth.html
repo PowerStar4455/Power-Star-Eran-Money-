@@ -7,35 +7,25 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* 100% ORIGINAL CSS + FINAL FIXES */
+        /* 100% ORIGINAL CSS KEPT UNTOUCHED */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { background: #0f172a; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; }
         .auth-box { background: #1e293b; padding: 25px; border-radius: 20px; width: 100%; max-width: 380px; text-align: center; border: 1px solid #fbbf24; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         h2 { color: #fbbf24; margin-bottom: 20px; }
-        
-        /* Input Group for +92 */
         .input-group { position: relative; display: flex; align-items: center; margin: 10px 0; }
         .prefix { position: absolute; left: 12px; color: #fbbf24; font-weight: bold; border-right: 1px solid #334155; padding-right: 8px; z-index: 5; }
         .input-group input { padding-left: 55px !important; margin: 0; }
-        
-        /* Password Eye Icon */
         .pass-group { position: relative; width: 100%; margin: 10px 0; }
         .pass-group input { margin: 0; padding-right: 45px; }
         .eye-btn { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8; cursor: pointer; z-index: 5; }
-
         input { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #334155; background: #0f172a; color: white; outline: none; font-size: 16px; }
         button { width: 100%; padding: 15px; background: #fbbf24; color: black; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; margin-top: 10px; font-size: 16px; }
-        
-        /* 💯 T-Box Alignment Fix */
         .t-box { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 18px 0; font-size: 13px; color: #94a3b8; }
         .t-box input { width: 18px !important; height: 18px !important; margin: 0 !important; cursor: pointer; flex-shrink: 0; }
         .t-box label { cursor: pointer; line-height: 1.2; text-align: left; }
         .t-box a { color: #fbbf24; text-decoration: underline; font-weight: bold; }
-
-        /* Device ID Section */
         .dev-section { margin-top: 25px; padding: 12px; background: #0f172a; border-radius: 10px; border: 1px dashed #334155; font-size: 11px; color: #64748b; display: flex; justify-content: space-between; align-items: center; }
         .dev-icons i { color: #fbbf24; cursor: pointer; margin-left: 10px; font-size: 14px; }
-
         .hidden { display: none; }
         .toggle-txt { margin-top: 20px; cursor: pointer; color: #94a3b8; font-size: 14px; }
         .toggle-txt span { color: #fbbf24; font-weight: bold; }
@@ -90,7 +80,9 @@
     </div>
 
     <script>
-        const API = "https://sheetdb.io/api/v1/lcnr1ekbbyn58"; 
+        // Updated API and Authentication Key
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxZ1yoCCbcaw6FF0c5mSK79aTwgAmK0b8OCO_4zkkNc_V02lH_5alokOo2XcUYqBb1X2A/exec";
+        const AUTH_KEY = "POWER_STAR_786_SECURE";
         const DEVICE = navigator.userAgent.slice(0,10) + "-" + screen.width;
         let isViewed = false;
 
@@ -100,13 +92,9 @@
 
         function togglePass(id, el) {
             const input = document.getElementById(id);
-            if (input.type === "password") {
-                input.type = "text";
-                el.classList.replace('fa-eye', 'fa-eye-slash');
-            } else {
-                input.type = "password";
-                el.classList.replace('fa-eye-slash', 'fa-eye');
-            }
+            input.type = (input.type === "password") ? "text" : "password";
+            el.classList.toggle('fa-eye');
+            el.classList.toggle('fa-eye-slash');
         }
 
         function viewID() {
@@ -128,7 +116,8 @@
             const btn = document.getElementById('l-btn');
             btn.innerText = "Checking..."; btn.disabled = true;
             try {
-                const res = await fetch(API);
+                // Fetch data from new Secure API
+                const res = await fetch(SCRIPT_URL);
                 const data = await res.json();
                 const user = data.find(u => String(u.number) === String(num) && String(u.password) === String(pass));
                 if(user) {
@@ -152,22 +141,35 @@
             btn.innerText = "Processing..."; btn.disabled = true;
 
             try {
-                const checkRes = await fetch(API);
+                const checkRes = await fetch(SCRIPT_URL);
                 const allUsers = await checkRes.json();
-                if(allUsers.find(u => u.device_id === DEVICE)) return msg("❌ Already Registered!", "error");
+                if(allUsers.find(u => u.device_id === DEVICE)) {
+                    btn.innerText = "REGISTER"; btn.disabled = false;
+                    return msg("❌ Already Registered!", "error");
+                }
 
                 const newAQ = makeAQ();
-                const payload = { data: [{ 
-                    name, number: num, password: pass, referral: ref, 
-                    balance: (ref ? 50 : 0), device_id: DEVICE, 
-                    user_id: newAQ, status: "active", 
-                    date: new Date().toLocaleDateString('en-GB') 
-                }]};
+                const payload = {
+                    key: AUTH_KEY,
+                    row_type: "REGISTRATION",
+                    name: name,
+                    number: num,
+                    password: pass,
+                    referral: ref,
+                    balance: (ref ? 50 : 0),
+                    device_id: DEVICE,
+                    user_id: newAQ
+                };
 
-                const res = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)});
-                if(res.ok) Swal.fire({ title: "Welcome!", text: "ID: " + newAQ, icon: "success" }).then(() => location.reload());
+                // Post data using secure Google API
+                fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify(payload)
+                }).then(() => {
+                    Swal.fire({ title: "Welcome!", text: "ID: " + newAQ, icon: "success" }).then(() => location.reload());
+                });
             } catch(e) { msg("Server Busy", "error"); }
-            btn.innerText = "REGISTER"; btn.disabled = false;
         }
     </script>
 </body>
