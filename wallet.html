@@ -123,7 +123,6 @@
             const r = await fetch(`${API}/search?number=${user.number}`);
             const data = await r.json();
 
-            // 1. Live Data Sync (Balance & Comm)
             const main = data.find(x => !x.row_type);
             if(main) {
                 const bal = parseFloat(main.balance || 0);
@@ -135,7 +134,6 @@
                 localStorage.setItem('power_star_user', JSON.stringify(user));
             }
 
-            // 2. Verified Account Sync (Columns M, N, O)
             const bind = data.find(x => x.row_type === "BINDING");
             if(bind && bind.acc_number) {
                 document.getElementById('binding-form').style.display = 'none';
@@ -146,7 +144,6 @@
                 window.isAccountBound = true;
             }
 
-            // 3. History Loader
             const logs = data.filter(x => x.row_type === "WITHDRAWAL");
             document.getElementById('history-container').innerHTML = logs.length ? 
                 logs.reverse().map(l => `
@@ -163,27 +160,32 @@
         if(!n || !t) return Swal.fire("Required", "All fields are mandatory", "error");
 
         const confirm = await Swal.fire({
-            title: 'Are you sure?',
-            text: `Confirm Number: ${n}. You cannot change this later!`,
+            title: 'Confirm Details?',
+            text: `Number: ${n}. You cannot change this later!`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#10b981'
         });
 
         if(confirm.isConfirmed) {
-            Swal.fire({title: 'Binding Account...', didOpen: () => Swal.showLoading()});
+            Swal.fire({title: 'Binding Account...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
             
-            // Unique Account Check
-            const check = await fetch(`${API}/search?acc_number=${n}`);
-            const exist = await check.json();
-            if(exist.length > 0) return Swal.fire("Denied", "This account is already linked!", "error");
+            try {
+                const checkRes = await fetch(`${API}/search?acc_number=${n}&row_type=BINDING`);
+                const exist = await checkRes.json();
+                if(exist.length > 0) return Swal.fire("Denied", "This account is already linked!", "error");
 
-            await fetch(API, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ number: user.number, row_type: "BINDING", wallet_name: ty, acc_title: t, acc_number: n, date: new Date().toLocaleString() })
-            });
-            location.reload();
+                // WAIT for the post to finish
+                const response = await fetch(API, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ number: user.number, row_type: "BINDING", wallet_name: ty, acc_title: t, acc_number: n, date: new Date().toLocaleString() })
+                });
+
+                if(response.ok) {
+                    Swal.fire("Success", "Account Bound Successfully", "success").then(() => location.reload());
+                }
+            } catch(e) { Swal.fire("Error", "Connection failed", "error"); }
         }
     }
 
@@ -195,7 +197,6 @@
         if(!window.isAccountBound) return Swal.fire("Locked", "Please bind your account first!", "warning");
         if(amt < 525 || isNaN(amt)) return Swal.fire("Error", "Min Withdrawal: Rs. 525", "error");
         
-        // Final Real-Time Balance Check
         Swal.fire({title: 'Verifying...', didOpen: () => Swal.showLoading()});
         const r = await fetch(`${API}/search?number=${user.number}`);
         const d = await r.json();
@@ -215,4 +216,4 @@
     function logout() { localStorage.clear(); location.href="index.html"; }
 </script>
 </body>
-    </html>
+</html>
