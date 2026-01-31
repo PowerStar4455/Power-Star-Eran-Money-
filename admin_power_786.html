@@ -11,21 +11,15 @@
         :root { --gold: #fbbf24; --blue: #3b82f6; --bg: #0b0f1a; --card: #161e2e; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Poppins', sans-serif; background: var(--bg); color: white; padding: 15px; overflow-x: hidden; }
-        
-        /* Login Overlay */
         #admin-lock { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; }
         .lock-box { background: var(--card); padding: 30px; border-radius: 20px; border: 1px solid var(--gold); text-align: center; width: 100%; max-width: 350px; }
-        
-        /* Main UI (Hidden by default) */
         #main-admin-ui { display: none; max-width: 500px; margin: 0 auto; }
-        
         .card { background: var(--card); border: 1px solid #2d3748; border-radius: 20px; padding: 20px; margin-bottom: 20px; }
         h2 { color: var(--gold); text-align: center; margin-bottom: 20px; text-transform: uppercase; font-size: 18px; }
         input, select { width: 100%; padding: 14px; margin-bottom: 12px; background: #050810; border: 1px solid #334155; color: white; border-radius: 12px; outline: none; }
         .btn { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-blue { background: var(--blue); color: white; }
         .btn-gold { background: var(--gold); color: black; }
-        
         #search-result { background: #0f172a; padding: 15px; border-radius: 12px; margin-top: 10px; display: none; border: 1px solid #1e293b; font-size: 13px; line-height: 1.6; }
         .w-item { background: #1e293b; padding: 15px; border-radius: 15px; margin-top: 15px; border-left: 5px solid var(--gold); }
     </style>
@@ -36,7 +30,6 @@
     <div class="lock-box">
         <i class="fas fa-user-shield" style="font-size: 40px; color: var(--gold); margin-bottom: 20px;"></i>
         <h3>Master Access</h3>
-        <p style="font-size: 11px; color: #94a3b8; margin-bottom: 20px;">Enter security key to continue</p>
         <input type="password" id="admin-pass" placeholder="Security Key" style="text-align: center;">
         <button class="btn btn-gold" onclick="verifyAccess()">Unlock System</button>
     </div>
@@ -68,63 +61,77 @@
 
     <div class="card">
         <h3>Withdrawal Requests</h3>
-        <div id="w-list"><p style="text-align:center; opacity:0.3; font-size:12px;">Connecting to server...</p></div>
+        <div id="w-list"><p style="text-align:center; opacity:0.3; font-size:12px;">Syncing with Sheet...</p></div>
     </div>
     
     <button onclick="logoutAdmin()" style="background:none; border:none; color:#ef4444; width:100%; font-size:12px; cursor:pointer; margin-bottom:20px;">Secure Logout</button>
 </div>
 
 <script>
-    const API = "https://sheetdb.io/api/v1/lcnr1ekbbyn58";
+    // Updated API Connection
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxZ1yoCCbcaw6FF0c5mSK79aTwgAmK0b8OCO_4zkkNc_V02lH_5alokOo2XcUYqBb1X2A/exec";
+    const AUTH_KEY = "POWER_STAR_786_SECURE";
     const MASTER_KEY = "Hussain@2025";
-    let activeUser = null;
+    let allData = [];
 
-    // 1. Password Verification
     function verifyAccess() {
-        const input = document.getElementById('admin-pass').value;
-        if(input === MASTER_KEY) {
+        if(document.getElementById('admin-pass').value === MASTER_KEY) {
             sessionStorage.setItem('admin_auth', 'true');
             document.getElementById('admin-lock').style.display = 'none';
             document.getElementById('main-admin-ui').style.display = 'block';
-            loadW(); // Load data only after login
+            loadData();
         } else {
-            Swal.fire("Access Denied", "Incorrect Security Key", "error");
+            Swal.fire("Denied", "Incorrect Key", "error");
         }
     }
 
-    // Check session on load
     window.onload = () => {
         if(sessionStorage.getItem('admin_auth') === 'true') {
             document.getElementById('admin-lock').style.display = 'none';
             document.getElementById('main-admin-ui').style.display = 'block';
-            loadW();
+            loadData();
         }
     };
 
-    function logoutAdmin() {
-        sessionStorage.clear();
-        location.reload();
+    async function loadData() {
+        try {
+            const r = await fetch(SCRIPT_URL);
+            allData = await r.json();
+            renderWithdrawals();
+        } catch(e) { console.log("API Error"); }
     }
 
-    // 2. Main Logic (Locked to UI)
+    function renderWithdrawals() {
+        const pending = allData.filter(x => x.row_type === "WITHDRAWAL" && (x.status === "pending" || !x.status));
+        const list = document.getElementById('w-list');
+        list.innerHTML = pending.length ? pending.map(w => {
+            const bind = allData.find(x => x.number === w.number && x.row_type === "BINDING") || {};
+            return `<div class="w-item">
+                <b>Phone: ${w.number}</b><br>
+                Amount: Rs. ${w.w_amount}<br>
+                <small>${bind.wallet_name || 'N/A'}: ${bind.acc_number || 'No Account Bound'}</small><br>
+                <button class="btn btn-gold" style="height:35px; margin-top:10px; font-size:11px;" 
+                onclick="updateStatus('${w.number}', '${w.w_amount}', 'success')">Approve Payment</button>
+            </div>`;
+        }).join('') : "No pending requests.";
+    }
+
     async function findUser() {
         const id = document.getElementById('sid').value;
-        if(!id) return;
-        Swal.fire({title: 'Searching...', didOpen: () => Swal.showLoading()});
-        const r = await fetch(`${API}/search?user_id=${id}`);
-        const d = await r.json();
-        const main = d.find(x => !x.row_type);
-        const bind = d.find(x => x.row_type === "BINDING");
-        Swal.close();
+        const main = allData.find(x => x.user_id === id && (!x.row_type || x.row_type === "REGISTRATION"));
+        const bind = allData.find(x => x.user_id === id && x.row_type === "BINDING");
         
         if(main) {
-            activeUser = main;
-            const res = document.getElementById('search-result');
-            res.style.display = 'block';
+            document.getElementById('search-result').style.display = 'block';
             document.getElementById('action-box').style.display = 'block';
-            res.innerHTML = `<b>Name:</b> ${main.name}<br><b>Phone:</b> ${main.number}<br><b>Bal:</b> ${main.balance}<br><b>Bank:</b> ${bind ? bind.acc_number : 'None'}`;
+            document.getElementById('search-result').innerHTML = `
+                <b>Name:</b> ${main.name}<br>
+                <b>Phone:</b> ${main.number}<br>
+                <b>Wallet Bal:</b> Rs. ${main.balance}<br>
+                <b>Commission:</b> Rs. ${main.claimed_comm || 0}`;
+            window.activeUser = main;
         } else {
-            Swal.fire("Not Found", "Invalid ID", "warning");
+            Swal.fire("Not Found", "Invalid User ID", "warning");
         }
     }
 
@@ -132,37 +139,41 @@
         const amt = document.getElementById('f-amt').value;
         const field = document.getElementById('f-field').value;
         const type = document.getElementById('f-type').value;
-        if(!activeUser || !amt) return;
+        if(!window.activeUser || !amt) return;
 
-        Swal.fire({title: 'Processing...', didOpen: () => Swal.showLoading()});
-        const newBal = parseFloat(activeUser[field] || 0) + parseFloat(amt);
-        let b = {}; b[field] = newBal;
+        Swal.fire({title: 'Transferring...', didOpen: () => Swal.showLoading()});
         
-        await fetch(`${API}/number/${activeUser.number}`, { method: 'PATCH', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(b) });
-        await fetch(API, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ number: activeUser.number, row_type: type, w_amount: amt, status: 'success', date: new Date().toLocaleString() }) });
-        
-        Swal.fire("Success!", "Funds Transferred", "success").then(() => findUser());
+        const payload = {
+            key: AUTH_KEY,
+            row_type: type,
+            number: window.activeUser.number,
+            w_amount: amt,
+            target_field: field // Ye salary/reward ke liye balance update karega
+        };
+
+        fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) })
+        .then(() => {
+            Swal.fire("Success", "Funds Sent!", "success").then(() => location.reload());
+        });
     }
 
-    async function loadW() {
-        try {
-            const r = await fetch(`${API}/search?row_type=WITHDRAWAL&status=pending`);
-            const ws = await r.json();
-            const br = await fetch(`${API}/search?row_type=BINDING`);
-            const bs = await br.json();
-            const list = document.getElementById('w-list');
-            list.innerHTML = ws.length ? ws.map(w => {
-                const b = bs.find(x => x.number === w.number) || {};
-                return `<div class="w-item"><b>${w.number}</b><br>Rs. ${w.w_amount}<br><small>${b.wallet_name}: ${b.acc_number}</small><br><button class="btn btn-gold" style="height:35px; margin-top:10px; font-size:11px;" onclick="approve('${w.number}','${w.w_amount}','${w.date}')">Approve Payment</button></div>`;
-            }).join('') : "No pending requests.";
-        } catch(e) { console.log("Auth error or API fail"); }
+    async function updateStatus(num, amt, newStatus) {
+        Swal.fire({title: 'Updating...', didOpen: () => Swal.showLoading()});
+        const payload = {
+            key: AUTH_KEY,
+            row_type: "UPDATE_STATUS",
+            number: num,
+            w_amount: amt,
+            new_status: newStatus
+        };
+
+        fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) })
+        .then(() => {
+            Swal.fire("Updated", "Status marked as Success", "success").then(() => location.reload());
+        });
     }
 
-    async function approve(n, a, d) {
-        Swal.fire({title: 'Finalizing...', didOpen: () => Swal.showLoading()});
-        await fetch(`${API}/number/${n}?row_type=WITHDRAWAL&status=pending&w_amount=${a}`, { method: 'PATCH', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ status: 'success' }) });
-        location.reload();
-    }
+    function logoutAdmin() { sessionStorage.clear(); location.reload(); }
 </script>
 </body>
 </html>
