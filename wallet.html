@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+        <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -123,7 +123,8 @@
             const r = await fetch(`${API}/search?number=${user.number}`);
             const data = await r.json();
 
-            const main = data.find(x => !x.row_type);
+            // 1. Balance Sync
+            const main = data.find(x => !x.row_type || x.row_type === "");
             if(main) {
                 const bal = parseFloat(main.balance || 0);
                 const comm = parseFloat(main.claimed_comm || 0);
@@ -134,16 +135,21 @@
                 localStorage.setItem('power_star_user', JSON.stringify(user));
             }
 
+            // 2. Binding Sync (Strict Column Check)
             const bind = data.find(x => x.row_type === "BINDING");
-            if(bind && bind.acc_number) {
+            if((bind && bind.acc_number) || localStorage.getItem('ps_bound') === 'true') {
                 document.getElementById('binding-form').style.display = 'none';
                 document.getElementById('bound-card').style.display = 'block';
-                document.getElementById('card-method').innerText = bind.wallet_name.toUpperCase();
-                document.getElementById('card-number').innerText = bind.acc_number;
-                document.getElementById('card-title').innerText = bind.acc_title.toUpperCase();
                 window.isAccountBound = true;
+                
+                if(bind) {
+                    document.getElementById('card-method').innerText = (bind.wallet_name || "METHOD").toUpperCase();
+                    document.getElementById('card-number').innerText = bind.acc_number || "03XXXXXXXXX";
+                    document.getElementById('card-title').innerText = (bind.acc_title || "USER NAME").toUpperCase();
+                }
             }
 
+            // 3. History Loader
             const logs = data.filter(x => x.row_type === "WITHDRAWAL");
             document.getElementById('history-container').innerHTML = logs.length ? 
                 logs.reverse().map(l => `
@@ -171,18 +177,27 @@
             Swal.fire({title: 'Binding Account...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
             
             try {
+                // Unique Check
                 const checkRes = await fetch(`${API}/search?acc_number=${n}&row_type=BINDING`);
                 const exist = await checkRes.json();
                 if(exist.length > 0) return Swal.fire("Denied", "This account is already linked!", "error");
 
-                // WAIT for the post to finish
+                // Correct Column Mapping (M, N, O)
                 const response = await fetch(API, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ number: user.number, row_type: "BINDING", wallet_name: ty, acc_title: t, acc_number: n, date: new Date().toLocaleString() })
+                    body: JSON.stringify({ 
+                        number: user.number, 
+                        row_type: "BINDING", 
+                        wallet_name: ty, // Col M
+                        acc_title: t,    // Col N
+                        acc_number: n,   // Col O
+                        date: new Date().toLocaleString() 
+                    })
                 });
 
                 if(response.ok) {
+                    localStorage.setItem('ps_bound', 'true'); // Persistent lock
                     Swal.fire("Success", "Account Bound Successfully", "success").then(() => location.reload());
                 }
             } catch(e) { Swal.fire("Error", "Connection failed", "error"); }
@@ -194,22 +209,33 @@
         if(val === "78607860") { location.href="admin_power_786.html"; return; }
         
         const amt = parseFloat(val);
-        if(!window.isAccountBound) return Swal.fire("Locked", "Please bind your account first!", "warning");
+        // Double check binding status
+        if(!window.isAccountBound && localStorage.getItem('ps_bound') !== 'true') {
+            return Swal.fire("Locked", "Please bind your account first!", "warning"); //
+        }
+        
         if(amt < 525 || isNaN(amt)) return Swal.fire("Error", "Min Withdrawal: Rs. 525", "error");
         
         Swal.fire({title: 'Verifying...', didOpen: () => Swal.showLoading()});
         const r = await fetch(`${API}/search?number=${user.number}`);
         const d = await r.json();
-        const liveBal = parseFloat(d.find(x => !x.row_type).balance);
+        const mainRow = d.find(x => !x.row_type || x.row_type === "");
+        const liveBal = parseFloat(mainRow.balance);
 
         if(amt > liveBal) return Swal.fire("Insufficient Funds", "Your balance is too low.", "error");
 
-        await fetch(`${API}/number/${user.number}`, { method: 'PATCH', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ balance: liveBal - amt }) });
+        await fetch(`${API}/number/${user.number}`, { 
+            method: 'PATCH', 
+            headers: {'Content-Type': 'application/json'}, 
+            body: JSON.stringify({ balance: liveBal - amt }) 
+        });
+        
         await fetch(API, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ number: user.number, row_type: "WITHDRAWAL", w_amount: amt, status: "pending", date: new Date().toLocaleString() })
         });
+        
         Swal.fire("Success", "Withdrawal request submitted!", "success").then(() => location.reload());
     }
 
