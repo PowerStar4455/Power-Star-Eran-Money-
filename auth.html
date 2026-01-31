@@ -7,7 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* 100% ORIGINAL CSS KEPT UNTOUCHED */
+        /* ORIGINAL CSS UNTOUCHED */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { background: #0f172a; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; }
         .auth-box { background: #1e293b; padding: 25px; border-radius: 20px; width: 100%; max-width: 380px; text-align: center; border: 1px solid #fbbf24; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
@@ -80,7 +80,7 @@
     </div>
 
     <script>
-        // Updated API and Authentication Key
+        // Secure API Setup
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxZ1yoCCbcaw6FF0c5mSK79aTwgAmK0b8OCO_4zkkNc_V02lH_5alokOo2XcUYqBb1X2A/exec";
         const AUTH_KEY = "POWER_STAR_786_SECURE";
         const DEVICE = navigator.userAgent.slice(0,10) + "-" + screen.width;
@@ -112,18 +112,34 @@
             let num = document.getElementById('l-num').value.trim();
             const pass = document.getElementById('l-pass').value.trim();
             if(!num || !pass) return msg("Missing info", "warning");
+
+            // Format check: Number se 0 ya 92 hatao
+            if (num.startsWith('0')) num = num.substring(1);
+            if (num.startsWith('92')) num = num.substring(2);
             
             const btn = document.getElementById('l-btn');
             btn.innerText = "Checking..."; btn.disabled = true;
             try {
-                // Fetch data from new Secure API
                 const res = await fetch(SCRIPT_URL);
                 const data = await res.json();
-                const user = data.find(u => String(u.number) === String(num) && String(u.password) === String(pass));
+                
+                // Smart finding with format cleaning
+                const user = data.find(u => {
+                    let sNum = String(u.number).trim();
+                    if (sNum.startsWith('0')) sNum = sNum.substring(1);
+                    return sNum === num && String(u.password).trim() === pass;
+                });
+
                 if(user) {
-                    if(user.device_id && user.device_id !== DEVICE) msg("❌ Wrong Device!", "error");
-                    else { localStorage.setItem('power_star_user', JSON.stringify(user)); window.location.href = "dashboard.html"; }
-                } else msg("❌ Invalid Login", "error");
+                    if(user.device_id && user.device_id !== DEVICE) {
+                        msg("❌ Device restricted!", "error");
+                    } else { 
+                        localStorage.setItem('power_star_user', JSON.stringify(user)); 
+                        window.location.href = "dashboard.html"; 
+                    }
+                } else {
+                    msg("❌ Invalid Credentials", "error");
+                }
             } catch(e) { msg("Connection Error", "error"); }
             btn.innerText = "LOGIN"; btn.disabled = false;
         }
@@ -135,17 +151,19 @@
             const ref = document.getElementById('r-ref').value.trim();
             const isChecked = document.getElementById('t-check').checked;
 
-            if(!name || !num || !pass || !isChecked) return msg("Complete all fields", "info");
-            
+            if(!name || !num || !pass || !isChecked) return msg("Fill all fields", "info");
+            if (num.startsWith('0')) num = num.substring(1);
+
             const btn = document.getElementById('r-btn');
             btn.innerText = "Processing..."; btn.disabled = true;
 
             try {
                 const checkRes = await fetch(SCRIPT_URL);
                 const allUsers = await checkRes.json();
-                if(allUsers.find(u => u.device_id === DEVICE)) {
+                
+                if(allUsers.find(u => String(u.number).includes(num))) {
                     btn.innerText = "REGISTER"; btn.disabled = false;
-                    return msg("❌ Already Registered!", "error");
+                    return msg("❌ Number already exists!", "error");
                 }
 
                 const newAQ = makeAQ();
@@ -161,13 +179,13 @@
                     user_id: newAQ
                 };
 
-                // Post data using secure Google API
+                // POST data to Google Script
                 fetch(SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     body: JSON.stringify(payload)
                 }).then(() => {
-                    Swal.fire({ title: "Welcome!", text: "ID: " + newAQ, icon: "success" }).then(() => location.reload());
+                    Swal.fire({ title: "Registered!", text: "Your ID: " + newAQ, icon: "success" }).then(() => location.reload());
                 });
             } catch(e) { msg("Server Busy", "error"); }
         }
