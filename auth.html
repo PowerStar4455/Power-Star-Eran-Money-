@@ -3,125 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Power Star | Verified Access</title>
+    <title>Power Star | Login & Register</title>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* ORIGINAL CSS KEPT UNTOUCHED */
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: #0f172a; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; }
-        .auth-box { background: #1e293b; padding: 25px; border-radius: 20px; width: 100%; max-width: 380px; text-align: center; border: 1px solid #fbbf24; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        h2 { color: #fbbf24; margin-bottom: 20px; }
-        .input-group { position: relative; display: flex; align-items: center; margin: 10px 0; }
-        .prefix { position: absolute; left: 12px; color: #fbbf24; font-weight: bold; border-right: 1px solid #334155; padding-right: 8px; z-index: 5; }
-        .input-group input { padding-left: 55px !important; margin: 0; }
-        input { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #334155; background: #0f172a; color: white; outline: none; font-size: 16px; }
-        button { width: 100%; padding: 15px; background: #fbbf24; color: black; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; margin-top: 10px; font-size: 16px; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+        body { background: #0f172a; color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .auth-box { background: #1e293b; width: 100%; max-width: 400px; border-radius: 25px; padding: 25px; border: 1px solid #fbbf24; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h2 { color: #fbbf24; text-align: center; margin-bottom: 25px; text-transform: uppercase; }
+        .group { position: relative; margin-bottom: 15px; }
+        .prefix { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #fbbf24; font-weight: bold; border-right: 1px solid #334155; padding-right: 8px; }
+        input { width: 100%; background: #0f172a; border: 1.5px solid #334155; border-radius: 12px; padding: 14px; color: white; outline: none; font-size: 15px; }
+        input:focus { border-color: #fbbf24; }
+        .num-in { padding-left: 50px !important; }
+        .eye { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8; cursor: pointer; }
+        button { width: 100%; padding: 15px; background: #fbbf24; color: black; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; font-size: 16px; margin-top: 10px; }
+        .switch { text-align: center; margin-top: 15px; font-size: 13px; color: #94a3b8; }
+        .switch span { color: #fbbf24; cursor: pointer; font-weight: bold; }
         .hidden { display: none; }
-        .toggle-txt { margin-top: 20px; cursor: pointer; color: #94a3b8; font-size: 14px; }
-        .toggle-txt span { color: #fbbf24; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div class="auth-box">
-        <div id="log-form">
+        <div id="l-form">
             <h2>Login</h2>
-            <div class="input-group">
-                <span class="prefix">+92</span>
-                <input type="number" id="l-num" placeholder="3xxxxxxxxx">
-            </div>
-            <input type="password" id="l-pass" placeholder="Password" style="margin-top:10px;">
-            <button id="l-btn" onclick="doLogin()">LOGIN</button>
-            <p class="toggle-txt" onclick="toggle()">New here? <span>Create Account</span></p>
+            <div class="group"><span class="prefix">92</span><input type="number" id="l-num" class="num-in" placeholder="3xxxxxxxxx"></div>
+            <div class="group"><input type="password" id="l-pass" placeholder="Password"><i class="fas fa-eye eye" onclick="toggleP('l-pass')"></i></div>
+            <button onclick="doLogin()">LOGIN</button>
+            <p class="switch">Don't have an account? <span onclick="swap()">Register</span></p>
         </div>
-        
-        <div id="reg-form" class="hidden">
+
+        <div id="r-form" class="hidden">
             <h2>Register</h2>
-            <input type="text" id="r-name" placeholder="Full Name">
-            <div class="input-group">
-                <span class="prefix">+92</span>
-                <input type="number" id="r-num" placeholder="3xxxxxxxxx">
-            </div>
-            <input type="password" id="r-pass" placeholder="Password" style="margin-top:10px;">
-            <input type="text" id="r-ref" placeholder="Referral Code" style="margin-top:10px;">
-            <button id="r-btn" onclick="doRegister()">REGISTER</button>
-            <p class="toggle-txt" onclick="toggle()">Have account? <span>Login</span></p>
+            <div class="group"><input type="text" id="r-name" placeholder="Full Name"></div>
+            <div class="group"><span class="prefix">92</span><input type="number" id="r-num" class="num-in" placeholder="3xxxxxxxxx"></div>
+            <div class="group"><input type="password" id="r-pass" placeholder="Password"><i class="fas fa-eye eye" onclick="toggleP('r-pass')"></i></div>
+            <div class="group"><input type="text" id="r-ref" placeholder="Referral Code (Optional)"></div>
+            <button onclick="doRegister()">CREATE ACCOUNT</button>
+            <p class="switch">Already a member? <span onclick="swap()">Login</span></p>
         </div>
     </div>
 
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxZ1yoCCbcaw6FF0c5mSK79aTwgAmK0b8OCO_4zkkNc_V02lH_5alokOo2XcUYqBb1X2A/exec";
-        const AUTH_KEY = "POWER_STAR_786_SECURE";
-        const DEVICE = navigator.userAgent.slice(0,10) + "-" + screen.width;
+        const API = "https://script.google.com/macros/s/AKfycbxpbG2mpL67jY8BJGkfUpee7bGQr4UrCljXCkhnvRc39pLHl-0nESB78pnTzIASyetnpg/exec";
+        const KEY = "POWER_STAR_786_SECURE";
 
-        function msg(t, icon) { Swal.fire({ text: t, icon: icon, confirmButtonColor: '#fbbf24' }); }
-        function toggle() { document.getElementById('reg-form').classList.toggle('hidden'); document.getElementById('log-form').classList.toggle('hidden'); }
+        function swap() { document.getElementById('l-form').classList.toggle('hidden'); document.getElementById('r-form').classList.toggle('hidden'); }
+        function toggleP(id) { const x = document.getElementById(id); x.type = x.type === "password" ? "text" : "password"; }
 
         async function doLogin() {
-            let num = document.getElementById('l-num').value.trim();
-            const pass = document.getElementById('l-pass').value.trim();
-            if(!num || !pass) return msg("Missing info", "warning");
-
-            if (num.startsWith('0')) num = num.substring(1);
-
-            const btn = document.getElementById('l-btn');
-            btn.innerText = "Verifying..."; btn.disabled = true;
-
+            const num = document.getElementById('l-num').value;
+            const pass = document.getElementById('l-pass').value;
             try {
-                const res = await fetch(SCRIPT_URL);
-                const data = await res.json();
-                
-                // FIXED LOGIC: Sirf wo row dhoondo jahan password mojood ho
-                const user = data.find(u => {
-                    let sNum = String(u.number || "").trim();
-                    let sPass = String(u.password || "").trim();
-                    if (sNum.startsWith('0')) sNum = sNum.substring(1);
-                    // Match number aur password, aur check karein ke password khali na ho
-                    return sNum === num && sPass === pass && sPass !== "";
-                });
-
-                if(user) {
-                    localStorage.setItem('power_star_user', JSON.stringify(user));
-                    window.location.href = "dashboard.html";
-                } else {
-                    msg("❌ Invalid Credentials", "error");
-                }
-            } catch(e) { msg("Connection Error", "error"); }
-            btn.innerText = "LOGIN"; btn.disabled = false;
+                const res = await fetch(API);
+                const users = await res.json();
+                const user = users.find(u => String(u.number) === num && String(u.password) === pass);
+                if(user) { localStorage.setItem('power_star_user', JSON.stringify(user)); window.location.href="dashboard.html"; }
+                else { Swal.fire("Error", "Invalid Login", "error"); }
+            } catch(e) { Swal.fire("Error", "Network Error", "error"); }
         }
 
         async function doRegister() {
-            const name = document.getElementById('r-name').value.trim();
-            let num = document.getElementById('r-num').value.trim();
-            const pass = document.getElementById('r-pass').value.trim();
-            const ref = document.getElementById('r-ref').value.trim();
+            const name = document.getElementById('r-name').value;
+            const num = document.getElementById('r-num').value;
+            const pass = document.getElementById('r-pass').value;
+            const ref = document.getElementById('r-ref').value;
+            if(!name || !num || !pass) return Swal.fire("Fill all fields");
 
-            if(!name || !num || !pass) return msg("Fill all fields", "info");
-            if (num.startsWith('0')) num = num.substring(1);
-
-            const btn = document.getElementById('r-btn');
-            btn.innerText = "Processing..."; btn.disabled = true;
-
+            Swal.fire({title: 'Processing...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+            
             try {
-                const payload = {
-                    key: AUTH_KEY,
-                    row_type: "REGISTRATION",
-                    name: name,
-                    number: num,
-                    password: pass,
-                    referral: ref,
-                    balance: (ref ? 50 : 0),
-                    device_id: DEVICE,
-                    user_id: "AQ" + Math.floor(1000 + Math.random() * 9000)
-                };
+                const res = await fetch(API);
+                const all = await res.json();
+                const pssnID = "PSSN" + (all.length + 1);
 
-                fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) })
-                .then(() => {
-                    msg("Registered Successfully!", "success");
-                    setTimeout(() => location.reload(), 2000);
+                await fetch(API, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify({
+                        key: KEY, row_type: "AUTH", name: name, number: num, 
+                        password: pass, referral: ref, user_id: pssnID, 
+                        balance: (ref ? 50 : 0), status: "active"
+                    })
                 });
-            } catch(e) { msg("Server Error", "error"); }
+                Swal.fire("Success", "ID: " + pssnID, "success").then(() => location.reload());
+            } catch(e) { Swal.fire("Error", "Try Again", "error"); }
         }
     </script>
 </body>
