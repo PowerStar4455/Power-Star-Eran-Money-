@@ -87,61 +87,92 @@
         <a href="wallet.html"><i class="fas fa-wallet"></i>Wallet</a>
     </div>
 
-    <script>
-        const API = "https://sheetdb.io/api/v1/lcnr1ekbbyn58";
+<script>
+    // Master Config (Locked)
+    const API = "https://script.google.com/macros/s/AKfycbxpbG2mpL67jY8BJGkfUpee7bGQr4UrCljXCkhnvRc39pLHl-0nESB78pnTzIASyetnpg/exec";
+    const KEY = "POWER_STAR_786_SECURE";
 
-        window.onload = async function() {
-            const userData = localStorage.getItem('power_star_user');
-            if(!userData) { window.location.href = "auth.html"; return; }
-            let user = JSON.parse(userData);
+    window.onload = async function() {
+        const userData = localStorage.getItem('power_star_user');
+        
+        // 1. Session Check
+        if(!userData) { window.location.href = "auth.html"; return; }
+        let user = JSON.parse(userData);
 
-            // Admin Visibility
-            if(["3052424335", "3082424335"].includes(String(user.number))) {
-                document.getElementById('admin-ctrl').style.display = 'block';
+        // 2. Admin Visibility Check
+        const admins = ["3052424335", "3082424335"];
+        if(admins.includes(String(user.number))) {
+            const adminBtn = document.getElementById('admin-ctrl');
+            if(adminBtn) adminBtn.style.display = 'block';
+        }
+
+        // 3. Initial UI Display (Fast Load)
+        document.getElementById('u-num').innerText = user.user_id || "Loading...";
+        document.getElementById('u-name').innerText = "Hi, " + (user.name || "User");
+        document.getElementById('u-balance').innerText = parseFloat(user.balance || 0).toFixed(2);
+
+        // 4. Live Sync from Google Sheet
+        const bBox = document.getElementById('balance-container');
+        if(bBox) bBox.classList.add('syncing');
+
+        try {
+            const res = await fetch(API);
+            const allData = await res.json();
+            
+            // User ko identify karna (Number se identify karna safest hai)
+            const fresh = allData.find(u => String(u.number) === String(user.number));
+            
+            if(fresh) {
+                // 🛡️ SECURITY LOCK: Agar admin ne block kiya ho
+                if(fresh.status === "blocked") {
+                    localStorage.clear();
+                    window.location.href = "auth.html?msg=blocked";
+                    return;
+                }
+
+                // Update UI & LocalStorage
+                document.getElementById('u-balance').innerText = parseFloat(fresh.balance || 0).toFixed(2);
+                localStorage.setItem('power_star_user', JSON.stringify(fresh));
+                
+                // Announcement Logic (Sheet ke aakhir mein announcement check karega)
+                // Maan lein aapne Sheet mein ek special row rakhi hai "ANN" ke naam se
+                const annData = allData.find(row => row.row_type === "ANN");
+                if(annData) {
+                    const annImg = annData.image_url || "";
+                    const annText = annData.message || "Welcome to Power Star!";
+
+                    if(annImg && annImg !== "") {
+                        const imgEl = document.getElementById('ann-img');
+                        imgEl.src = annImg;
+                        imgEl.style.display = 'block';
+                        document.getElementById('ann-msg').style.display = 'none';
+                    } else {
+                        document.getElementById('ann-msg').querySelector('span').innerText = annText;
+                    }
+                }
             }
-
-            // UI Display
-            document.getElementById('u-num').innerText = user.user_id || user.number;
-            document.getElementById('u-name').innerText = "Hi, " + (user.name || "User");
-            document.getElementById('u-balance').innerText = parseFloat(user.balance || 0).toFixed(2);
-
-            // Sync Fresh Data
-            const bBox = document.getElementById('balance-container');
-            bBox.classList.add('syncing');
-
-            try {
-                // 1. Fetch User Data
-                const res = await fetch(`${API}/search?number=${user.number}`);
-                const data = await res.json();
-                if(data.length > 0) {
-                    const fresh = data[0];
-                    document.getElementById('u-balance').innerText = parseFloat(fresh.balance || 0).toFixed(2);
-                    localStorage.setItem('power_star_user', JSON.stringify(fresh));
-                }
-
-                // 2. Fetch Announcements (Professional Tip: Alag sheet rakhen ya isi ka koi fix row use karein)
-                // Farz karein aapne ek sheet banayi hai 'announcements' ke naam se
-                // Filhal main demo logic de raha hoon:
-                const annImg = ""; // Admin se image URL aayega
-                const annText = "Welcome to Power Star! Start earning today."; 
-
-                if(annImg) {
-                    document.getElementById('ann-img').src = annImg;
-                    document.getElementById('ann-img').style.display = 'block';
-                    document.getElementById('ann-msg').style.display = 'none';
-                } else {
-                    document.getElementById('ann-msg').querySelector('span').innerText = annText;
-                }
-
-            } catch(e) { console.log("Update Error"); }
-            finally { bBox.classList.remove('syncing'); }
+        } catch(e) { 
+            console.log("Sync delayed, using offline data."); 
+        } finally { 
+            if(bBox) bBox.classList.remove('syncing'); 
         }
+    }
 
-        function copyID() {
-            const idVal = document.getElementById('u-num').innerText;
-            navigator.clipboard.writeText(idVal);
-            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'ID Copied!', showConfirmButton: false, timer: 1500 });
-        }
-    </script>
+    // Copy PSSN ID Function
+    function copyID() {
+        const idVal = document.getElementById('u-num').innerText;
+        if(idVal === "Loading...") return;
+        navigator.clipboard.writeText(idVal);
+        Swal.fire({ 
+            toast: true, 
+            position: 'top-end', 
+            icon: 'success', 
+            title: 'ID Copied: ' + idVal, 
+            showConfirmButton: false, 
+            timer: 1500 
+        });
+    }
+</script>
+        
 </body>
 </html>
