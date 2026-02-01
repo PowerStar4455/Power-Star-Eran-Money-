@@ -9,40 +9,134 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
-        body { background: #0f172a; color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; overflow-x: hidden; }
+        body { background: #0f172a; color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; }
         .auth-box { background: #1e293b; width: 100%; max-width: 400px; border-radius: 25px; padding: 30px 20px; border: 1px solid #fbbf24; box-shadow: 0 15px 35px rgba(0,0,0,0.5); }
         h2 { color: #fbbf24; text-align: center; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 1px; font-size: 22px; }
+        
         .group { position: relative; margin-bottom: 18px; width: 100%; }
-        .prefix { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #fbbf24; font-weight: bold; border-right: 1px solid #334155; padding-right: 10px; z-index: 1; }
-        input { width: 100%; background: #0f172a; border: 1.5px solid #334155; border-radius: 15px; padding: 15px; color: white; font-size: 15px; outline: none; transition: 0.3s; }
-        input:focus { border-color: #fbbf24; box-shadow: 0 0 10px rgba(251, 191, 36, 0.3); }
+        
+        .prefix { 
+            position: absolute; 
+            left: 12px; 
+            top: 50%; 
+            transform: translateY(-50%); 
+            color: #fbbf24; 
+            font-weight: bold; 
+            border-right: 2px solid #334155; 
+            padding-right: 8px;
+            font-size: 15px;
+            z-index: 10;
+            pointer-events: none;
+        }
+        
+        input { 
+            width: 100%; 
+            background: #0f172a; 
+            border: 1.5px solid #334155; 
+            border-radius: 15px; 
+            padding: 15px; 
+            color: white; 
+            font-size: 15px; 
+            outline: none; 
+            transition: 0.3s; 
+        }
+        
+        input:focus { 
+            border-color: #fbbf24; 
+            box-shadow: 0 0 10px rgba(251, 191, 36, 0.3); 
+        }
+        
         input::placeholder { color: #64748b; }
-        .num-in { padding-left: 55px !important; }
-        .eye { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8; cursor: pointer; padding: 5px; user-select: none; }
+        
+        .num-in { padding-left: 60px !important; }
+        
+        .eye { 
+            position: absolute; 
+            right: 15px; 
+            top: 50%; 
+            transform: translateY(-50%); 
+            color: #94a3b8; 
+            cursor: pointer; 
+            padding: 5px;
+            z-index: 10;
+        }
         .eye:hover { color: #fbbf24; }
         
-        .terms-box { display: flex; align-items: center; gap: 10px; margin: 15px 0; font-size: 13px; color: #94a3b8; }
-        .terms-box input { width: 18px; height: 18px; cursor: pointer; accent-color: #fbbf24; }
-        .terms-box label { cursor: pointer; user-select: none; }
+        .terms-box { 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            margin: 15px 0; 
+            font-size: 13px; 
+            color: #94a3b8; 
+        }
+        .terms-box input { 
+            width: 18px; 
+            height: 18px; 
+            cursor: pointer; 
+            accent-color: #fbbf24; 
+        }
+        .terms-box label { cursor: pointer; }
         
-        .device-info { background: rgba(15, 23, 42, 0.7); padding: 10px; border-radius: 12px; border: 1px dashed #334155; margin-top: 15px; font-size: 11px; display: flex; justify-content: space-between; align-items: center; }
+        .device-info { 
+            background: rgba(15, 23, 42, 0.7); 
+            padding: 10px; 
+            border-radius: 12px; 
+            border: 1px dashed #334155; 
+            margin-top: 15px; 
+            font-size: 11px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
         
-        button { width: 100%; padding: 16px; background: #fbbf24; color: black; font-weight: 800; border: none; border-radius: 15px; cursor: pointer; font-size: 16px; transition: 0.3s; text-transform: uppercase; letter-spacing: 0.5px; }
-        button:hover { background: #f59e0b; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(251, 191, 36, 0.4); }
-        button:disabled { background: #475569; cursor: not-allowed; transform: none; }
+        button { 
+            width: 100%; 
+            padding: 16px; 
+            background: #fbbf24; 
+            color: black; 
+            font-weight: 800; 
+            border: none; 
+            border-radius: 15px; 
+            cursor: pointer; 
+            font-size: 16px; 
+            transition: 0.3s; 
+            text-transform: uppercase; 
+        }
+        button:hover { 
+            background: #f59e0b; 
+            transform: translateY(-2px); 
+        }
+        button:disabled { 
+            background: #475569; 
+            cursor: not-allowed; 
+            transform: none; 
+        }
         
-        .switch { text-align: center; margin-top: 20px; font-size: 14px; color: #94a3b8; }
-        .switch span { color: #fbbf24; font-weight: bold; cursor: pointer; text-decoration: underline; }
-        .switch span:hover { color: #f59e0b; }
+        .switch { 
+            text-align: center; 
+            margin-top: 20px; 
+            font-size: 14px; 
+            color: #94a3b8; 
+        }
+        .switch span { 
+            color: #fbbf24; 
+            font-weight: bold; 
+            cursor: pointer; 
+            text-decoration: underline; 
+        }
         
         .hidden { display: none; }
         
-        .password-strength { height: 4px; border-radius: 2px; margin-top: 5px; transition: 0.3s; }
+        .password-strength { 
+            height: 4px; 
+            border-radius: 2px; 
+            margin-top: 5px; 
+            transition: 0.3s; 
+        }
         .strength-weak { background: #ef4444; width: 33%; }
         .strength-medium { background: #f59e0b; width: 66%; }
         .strength-strong { background: #10b981; width: 100%; }
-        
-        .version-tag { position: fixed; bottom: 10px; right: 10px; background: rgba(30, 41, 59, 0.8); padding: 5px 10px; border-radius: 8px; font-size: 10px; color: #64748b; border: 1px solid #334155; }
     </style>
 </head>
 <body>
@@ -51,47 +145,56 @@
         <!-- LOGIN FORM -->
         <div id="l-form">
             <h2><i class="fas fa-fingerprint"></i> Secure Login</h2>
+            
             <div class="group">
                 <span class="prefix">+92</span>
-                <input type="tel" id="l-num" class="num-in" placeholder="3xxxxxxxxx" maxlength="10" autocomplete="off">
+                <input type="tel" id="l-num" class="num-in" placeholder="3001234567" maxlength="10">
             </div>
+            
             <div class="group">
-                <input type="password" id="l-pass" placeholder="Enter Password" autocomplete="off">
+                <input type="password" id="l-pass" placeholder="Enter Password">
                 <i class="fas fa-eye eye" onclick="toggleP('l-pass')"></i>
             </div>
+            
             <button onclick="doLogin()" id="login-btn">
                 <i class="fas fa-sign-in-alt"></i> Login
             </button>
+            
             <p class="switch">New to Power Star? <span onclick="swap()">Create Account</span></p>
         </div>
 
         <!-- REGISTER FORM -->
         <div id="r-form" class="hidden">
             <h2><i class="fas fa-user-shield"></i> Join Power Star</h2>
+            
             <div class="group">
-                <input type="text" id="r-name" placeholder="Full Name" autocomplete="off">
+                <input type="text" id="r-name" placeholder="Full Name">
             </div>
+            
             <div class="group">
                 <span class="prefix">+92</span>
-                <input type="tel" id="r-num" class="num-in" placeholder="3xxxxxxxxx" maxlength="10" autocomplete="off">
+                <input type="tel" id="r-num" class="num-in" placeholder="3001234567" maxlength="10">
             </div>
+            
             <div class="group">
-                <input type="password" id="r-pass" placeholder="Create Strong Password" autocomplete="off" oninput="checkPasswordStrength()">
+                <input type="password" id="r-pass" placeholder="Create Password (min 6 chars)" oninput="checkPasswordStrength()">
                 <i class="fas fa-eye eye" onclick="toggleP('r-pass')"></i>
                 <div id="pwd-strength" class="password-strength"></div>
             </div>
+            
             <div class="group">
-                <input type="text" id="r-ref" placeholder="Referral Code (Optional)" autocomplete="off" style="text-transform: uppercase;">
+                <input type="text" id="r-ref" placeholder="Referral Code (Optional)" style="text-transform: uppercase;">
             </div>
             
             <div class="terms-box">
                 <input type="checkbox" id="terms-chk">
-                <label for="terms-chk">I agree to the <b style="color: #fbbf24;">Terms & Conditions</b></label>
+                <label for="terms-chk">I agree to <b style="color: #fbbf24;">Terms & Conditions</b></label>
             </div>
 
             <button id="reg-btn" onclick="doRegister()">
                 <i class="fas fa-user-plus"></i> Register Now
             </button>
+            
             <p class="switch">Already a member? <span onclick="swap()">Login here</span></p>
         </div>
 
@@ -100,31 +203,25 @@
             <i class="fas fa-eye" style="cursor:pointer; color:#fbbf24;" onclick="toggleDID()"></i>
         </div>
     </div>
-    
-    <div class="version-tag">v2.0 Pro | Secure Auth</div>
 
     <script>
-        // ✅ AAPKA APPS SCRIPT URL
         const API = "https://script.google.com/macros/s/AKfycbx-fD8l50EeQpdyR2qO__UItpYczA1qcyki57DVIqWpHgZPa6mEdxwtRbJsy0yQFJaDYw/exec";
         const KEY = "POWER_STAR_786_SECURE";
         const SALT = "PS_SECURE_2024";
         
-        // Enhanced Device Fingerprint
         const DEVICE_ID = generateDeviceID();
         
         function generateDeviceID() {
             const nav = navigator;
             const screen = window.screen;
-            const fingerprint = `${nav.userAgent}|${nav.language}|${screen.width}x${screen.height}|${screen.colorDepth}|${new Date().getTimezoneOffset()}`;
+            const fingerprint = `${nav.userAgent}|${nav.language}|${screen.width}x${screen.height}`;
             return "PS-" + CryptoJS.MD5(fingerprint).toString().substring(0, 12).toUpperCase();
         }
         
-        // Password hashing
         function hashPassword(password) {
             return CryptoJS.SHA256(password + SALT).toString();
         }
         
-        // Password strength checker
         function checkPasswordStrength() {
             const pass = document.getElementById('r-pass').value;
             const bar = document.getElementById('pwd-strength');
@@ -156,10 +253,12 @@
             const eye = x.nextElementSibling;
             if(x.type === "password") {
                 x.type = "text";
-                eye.classList.replace('fa-eye', 'fa-eye-slash');
+                eye.classList.remove('fa-eye');
+                eye.classList.add('fa-eye-slash');
             } else {
                 x.type = "password";
-                eye.classList.replace('fa-eye-slash', 'fa-eye');
+                eye.classList.remove('fa-eye-slash');
+                eye.classList.add('fa-eye');
             }
         }
 
@@ -168,7 +267,6 @@
             txt.innerText = txt.innerText === "********" ? DEVICE_ID : "********";
         }
 
-        // Rate limiting
         const rateLimiter = {
             attempts: 0,
             lastAttempt: 0,
@@ -177,7 +275,7 @@
                 if(now - this.lastAttempt < 3000) {
                     this.attempts++;
                     if(this.attempts > 3) {
-                        Swal.fire("Too Fast!", "Please wait a moment before trying again", "warning");
+                        Swal.fire("Too Fast!", "Please wait before trying again", "warning");
                         return false;
                     }
                 } else {
@@ -196,19 +294,11 @@
             const btn = document.getElementById('login-btn');
             
             if(!num || !pass) {
-                return Swal.fire({
-                    icon: "warning",
-                    title: "Missing Fields",
-                    text: "Please enter both number and password"
-                });
+                return Swal.fire("Missing Fields", "Enter number and password", "warning");
             }
 
             if(!/^3\d{9}$/.test(num)) {
-                return Swal.fire({
-                    icon: "error",
-                    title: "Invalid Number",
-                    text: "Number must start with 3 and be 10 digits"
-                });
+                return Swal.fire("Invalid Number", "Must start with 3 and be 10 digits", "error");
             }
 
             btn.disabled = true;
@@ -216,8 +306,6 @@
 
             try {
                 const res = await fetch(API);
-                if(!res.ok) throw new Error('Network error');
-                
                 const users = await res.json();
                 const hashedPass = hashPassword(pass);
                 
@@ -227,28 +315,18 @@
                 );
                 
                 if(user) {
-                    if(user.status && user.status.toLowerCase() === "blocked") {
+                    if(user.status === "blocked") {
                         btn.disabled = false;
                         btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
-                        return Swal.fire({
-                            icon: "error",
-                            title: "Account Blocked",
-                            text: "Your account has been suspended. Contact support."
-                        });
+                        return Swal.fire("Blocked", "Account suspended. Contact admin.", "error");
                     }
                     
-                    const sessionData = {
-                        ...user,
-                        loginTime: new Date().toISOString(),
-                        deviceId: DEVICE_ID
-                    };
-                    localStorage.setItem('power_star_user', JSON.stringify(sessionData));
-                    localStorage.setItem('ps_session_token', CryptoJS.MD5(num + Date.now()).toString());
+                    localStorage.setItem('power_star_user', JSON.stringify(user));
                     
                     await Swal.fire({
                         icon: 'success',
-                        title: 'Welcome Back!',
-                        text: `User ID: ${user.user_id}`,
+                        title: 'Welcome!',
+                        text: 'ID: ' + user.user_id,
                         timer: 1500,
                         showConfirmButton: false
                     });
@@ -257,20 +335,12 @@
                 } else {
                     btn.disabled = false;
                     btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
-                    Swal.fire({
-                        icon: "error",
-                        title: "Login Failed",
-                        text: "Invalid phone number or password"
-                    });
+                    Swal.fire("Failed", "Wrong number or password", "error");
                 }
             } catch(e) {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
-                Swal.fire({
-                    icon: "error",
-                    title: "Connection Error",
-                    text: "Unable to connect to server. Please check your internet."
-                });
+                Swal.fire("Error", "Connection failed: " + e.message, "error");
             }
         }
 
@@ -285,62 +355,36 @@
             const btn = document.getElementById('reg-btn');
 
             if(!name || !num || !pass) {
-                return Swal.fire({
-                    icon: "warning",
-                    title: "Incomplete Form",
-                    text: "Please fill all required fields"
-                });
+                return Swal.fire("Incomplete", "Fill all required fields", "warning");
             }
 
-            if(!/^[a-zA-Z\s]{3,50}$/.test(name)) {
-                return Swal.fire({
-                    icon: "error",
-                    title: "Invalid Name",
-                    text: "Name must be 3-50 characters (letters only)"
-                });
+            if(name.length < 3) {
+                return Swal.fire("Invalid Name", "Name too short (min 3 chars)", "error");
             }
 
             if(!/^3\d{9}$/.test(num)) {
-                return Swal.fire({
-                    icon: "error",
-                    title: "Invalid Number",
-                    text: "Number must start with 3 and be 10 digits"
-                });
+                return Swal.fire("Invalid Number", "Must start with 3 and be 10 digits", "error");
             }
 
             if(pass.length < 6) {
-                return Swal.fire({
-                    icon: "error",
-                    title: "Weak Password",
-                    text: "Password must be at least 6 characters"
-                });
+                return Swal.fire("Weak Password", "Minimum 6 characters required", "error");
             }
 
             if(!accepted) {
-                return Swal.fire({
-                    icon: "info",
-                    title: "Terms Required",
-                    text: "Please accept Terms & Conditions to continue"
-                });
+                return Swal.fire("Terms Required", "Accept Terms & Conditions", "info");
             }
 
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
             
             try {
                 const res = await fetch(API);
-                if(!res.ok) throw new Error('Network error');
-                
                 const all = await res.json();
                 
                 if(all.some(u => String(u.number).trim() === num)) {
                     btn.disabled = false;
                     btn.innerHTML = '<i class="fas fa-user-plus"></i> Register Now';
-                    return Swal.fire({
-                        icon: "error",
-                        title: "Already Registered",
-                        text: "This phone number is already in use"
-                    });
+                    return Swal.fire("Exists", "Number already registered", "error");
                 }
 
                 const userID = "PSSN" + String(all.length + 1).padStart(4, '0');
@@ -357,36 +401,32 @@
 
                 const hashedPassword = hashPassword(pass);
 
-                const postData = {
-                    key: KEY,
-                    name: name,
-                    number: num,
-                    password: hashedPassword,
-                    balance: initialBalance,
-                    user_id: userID,
-                    referral: ref || "",
-                    status: "active"
-                };
-
                 await fetch(API, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(postData)
+                    body: JSON.stringify({
+                        key: KEY,
+                        name: name,
+                        number: num,
+                        password: hashedPassword,
+                        balance: initialBalance,
+                        user_id: userID,
+                        referral: ref || "",
+                        status: "active"
+                    })
                 });
 
                 await Swal.fire({
                     icon: 'success',
-                    title: 'Account Created!',
+                    title: 'Success!',
                     html: `
-                        <div style="text-align: left; padding: 10px;">
-                            <p><b>User ID:</b> ${userID}</p>
-                            <p><b>Phone:</b> +92${num}</p>
-                            <p><b>Balance:</b> Rs. ${initialBalance}</p>
-                            ${referralValid ? '<p style="color: #10b981;">✓ Referral bonus applied!</p>' : ''}
-                        </div>
+                        <p><b>User ID:</b> ${userID}</p>
+                        <p><b>Phone:</b> +92${num}</p>
+                        <p><b>Balance:</b> Rs. ${initialBalance}</p>
+                        ${referralValid ? '<p style="color: #10b981;">✓ Referral bonus!</p>' : ''}
                     `,
-                    confirmButtonText: 'Login Now',
+                    confirmButtonText: 'Login',
                     confirmButtonColor: '#fbbf24'
                 });
                 
@@ -395,25 +435,11 @@
             } catch(e) {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-user-plus"></i> Register Now';
-                Swal.fire({
-                    icon: "error",
-                    title: "Registration Failed",
-                    text: "An error occurred. Please try again."
-                });
+                Swal.fire("Error", "Failed: " + e.message, "error");
             }
         }
         
-        document.addEventListener('keypress', function(e) {
-            if(e.key === 'Enter') {
-                const activeForm = document.querySelector('.auth-box > div:not(.hidden)');
-                if(activeForm.id === 'l-form') doLogin();
-                else if(activeForm.id === 'r-form') doRegister();
-            }
-        });
-        
-        window.onload = function() {
-            document.querySelectorAll('input').forEach(inp => inp.value = '');
-        };
+        window.onload = () => document.querySelectorAll('input').forEach(i => i.value = '');
     </script>
 </body>
-</html>
+    </html>
