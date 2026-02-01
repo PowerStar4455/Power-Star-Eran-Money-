@@ -1,166 +1,212 @@
  <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Power Star | Secure Auth</title>
-
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
-<style>
-/* --- SAME CSS (UNCHANGED) --- */
-*{box-sizing:border-box;margin:0;padding:0;font-family:Poppins,sans-serif}
-body{background:#0f172a;color:#fff;display:flex;justify-content:center;align-items:center;min-height:100vh}
-.auth-box{background:#1e293b;width:100%;max-width:400px;border-radius:25px;padding:30px;border:1px solid #fbbf24}
-.hidden{display:none}
-.group{position:relative;margin-bottom:18px}
-.prefix{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#fbbf24;font-weight:bold}
-.num-in{padding-left:60px}
-input{width:100%;padding:15px;border-radius:15px;background:#0f172a;border:1px solid #334155;color:#fff}
-.eye{position:absolute;right:15px;top:50%;transform:translateY(-50%);cursor:pointer}
-button{width:100%;padding:15px;background:#fbbf24;border:none;border-radius:15px;font-weight:800}
-.password-strength{height:4px;margin-top:5px;border-radius:5px}
-.strength-weak{background:red;width:33%}
-.strength-medium{background:orange;width:66%}
-.strength-strong{background:green;width:100%}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Power Star | Secure Auth</title>
+  <script src="https:                                                                             
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    /* --- SAME CSS (UNCHANGED) --- */
+    *{
+      box-sizing:border-box;
+      margin:0;
+      padding:0;
+      font-family:Poppins,sans-serif
+    }
+    body{
+      background:#0f172a;
+      color:#fff;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      min-height:100vh
+    }
+    .auth-box{
+      background:#1e293b;
+      width:100%;
+      max-width:400px;
+      border-radius:25px;
+      padding:30px;
+      border:1px solid #fbbf24
+    }
+    .hidden{
+      display:none
+    }
+    .group{
+      position:relative;
+      margin-bottom:18px
+    }
+    .prefix{
+      position:absolute;
+      left:12px;
+      top:50%;
+      transform:translateY(-50%);
+      color:#fbbf24;
+      font-weight:bold
+    }
+    .num-in{
+      padding-left:60px
+    }
+    input{
+      width:100%;
+      padding:15px;
+      border-radius:15px;
+      background:#0f172a;
+      border:1px solid #334155;
+      color:#fff
+    }
+    .eye{
+      position:absolute;
+      right:15px;
+      top:50%;
+      transform:translateY(-50%);
+      cursor:pointer
+    }
+    button{
+      width:100%;
+      padding:15px;
+      background:#fbbf24;
+      border:none;
+      border-radius:15px;
+      font-weight:800
+    }
+    .password-strength{
+      height:4px;
+      margin-top:5px;
+      border-radius:5px
+    }
+    .strength-weak{
+      background:red;
+      width:33%
+    }
+    .strength-medium{
+      background:orange;
+      width:66%
+    }
+    .strength-strong{
+      background:green;
+      width:100%
+    }
+  </style>
 </head>
-
 <body>
-
-<div class="auth-box">
-
-<!-- LOGIN -->
-<div id="l-form">
-<h2>Secure Login</h2>
-
-<div class="group">
-<span class="prefix">+92</span>
-<input id="l-num" class="num-in" placeholder="3001234567">
-</div>
-
-<div class="group">
-<input type="password" id="l-pass" placeholder="Password">
-<i class="fas fa-eye eye" onclick="toggleP('l-pass')"></i>
-</div>
-
-<button id="login-btn" onclick="doLogin()">Login</button>
-<p onclick="swap()">Create Account</p>
-</div>
-
-<!-- REGISTER -->
-<div id="r-form" class="hidden">
-<h2>Register</h2>
-
-<input id="r-name" placeholder="Full Name">
-
-<div class="group">
-<span class="prefix">+92</span>
-<input id="r-num" class="num-in" placeholder="3001234567">
-</div>
-
-<div class="group">
-<input type="password" id="r-pass" placeholder="Password" oninput="checkPasswordStrength()">
-<i class="fas fa-eye eye" onclick="toggleP('r-pass')"></i>
-<div id="pwd-strength" class="password-strength"></div>
-</div>
-
-<input id="r-ref" placeholder="Referral Code">
-
-<label>
-<input type="checkbox" id="terms-chk"> Accept Terms
-</label>
-
-<button id="reg-btn" onclick="doRegister()">Register</button>
-<p onclick="swap()">Login</p>
-</div>
-
-<div style="margin-top:10px;font-size:12px">
-Device ID: <span id="did-text">******</span>
-<i class="fas fa-eye" onclick="toggleDID()"></i>
-</div>
-
-</div>
-
-<script>
-const API="https://script.google.com/macros/s/AKfycbxG5IHg_SLzmygNLPpBTzSAX07Ydb2Ixqyg0-YOKReiBbSVfkggVfCoCPWaCBzromFPSA/exec";
-const KEY="POWER_STAR_786_SECURE";
-
-/* Stronger Device ID */
-const current_device_id=btoa(
- navigator.userAgent + screen.width + screen.height + Intl.DateTimeFormat().resolvedOptions().timeZone
-).substring(0,25);
-
-document.getElementById("did-text").innerText=current_device_id.slice(0,6)+"****";
-
-/* Swap Forms */
-function swap(){
- document.getElementById("l-form").classList.toggle("hidden");
- document.getElementById("r-form").classList.toggle("hidden");
-}
-
-/* Show / Hide Password */
-function toggleP(id){
- const f=document.getElementById(id);
- f.type=f.type==="password"?"text":"password";
-}
-
-/* Password Strength */
-function checkPasswordStrength(){
- const p=document.getElementById("r-pass").value;
- const bar=document.getElementById("pwd-strength");
- bar.className="password-strength";
- if(p.length<6) bar.classList.add("strength-weak");
- else if(p.length<10) bar.classList.add("strength-medium");
- else bar.classList.add("strength-strong");
-}
-
-/* Toggle Device ID */
-function toggleDID(){
- const el=document.getElementById("did-text");
- el.innerText = el.innerText.includes("*") ? current_device_id : "******";
-}
-
-/* LOGIN */
-async function doLogin(){
- const num=l-num.value.trim();
- const pass=l-pass.value.trim();
- if(!num||!pass) return Swal.fire("Error","Fill all fields","error");
-
- const users=await fetch(API).then(r=>r.json());
- const user=users.find(u=>u.number==num && u.password==pass);
-
- if(!user) return Swal.fire("Fail","Wrong login","error");
- if(user.device_id && user.device_id!==current_device_id)
-   return Swal.fire("Blocked","Other device detected","error");
-
- localStorage.setItem("user",JSON.stringify(user));
- Swal.fire("Success","Logged in","success");
-}
-
-/* REGISTER */
-async function doRegister(){
- if(!terms-chk.checked) return Swal.fire("Terms","Accept terms","info");
-
- const users=await fetch(API).then(r=>r.json());
- if(users.some(u=>u.number==r-num.value))
-   return Swal.fire("Error","Already registered","error");
-
- const payload={
-   key:KEY,
-   name:r-name.value,
-   number:r-num.value,
-   password:r-pass.value,
-   user_id:"PSSN"+String(users.length+1).padStart(4,"0"),
-   device_id:current_device_id
- };
-
- await fetch(API,{method:"POST",body:JSON.stringify(payload)});
- Swal.fire("Done","Registered Successfully","success");
- swap();
-}
-</script>
-
+  <div class="auth-box">
+    <!-- LOGIN -->
+    <div id="l-form">
+      <h2>Secure Login</h2>
+      <div class="group">
+        <span class="prefix">+92</span>
+        <input id="l-num" class="num-in" placeholder="3001234567">
+      </div>
+      <div class="group">
+        <input type="password" id="l-pass" placeholder="Password">
+        <i class="fas fa-eye eye" onclick="toggleP('l-pass')"></i>
+      </div>
+      <button id="login-btn" onclick="doLogin()">Login</button>
+      <p onclick="swap()">Create Account</p>
+    </div>
+    <!-- REGISTER -->
+    <div id="r-form" class="hidden">
+      <h2>Register</h2>
+      <input id="r-name" placeholder="Full Name">
+      <div class="group">
+        <span class="prefix">+92</span>
+        <input id="r-num" class="num-in" placeholder="3001234567">
+      </div>
+      <div class="group">
+        <input type="password" id="r-pass" placeholder="Password" oninput="checkPasswordStrength()">
+        <i class="fas fa-eye eye" onclick="toggleP('r-pass')"></i>
+        <div id="pwd-strength" class="password-strength"></div>
+      </div>
+      <input id="r-ref" placeholder="Referral Code">
+      <label>
+        <input type="checkbox" id="terms-chk">
+        Accept Terms
+      </label>
+      <button id="reg-btn" onclick="doRegister()">Register</button>
+      <p onclick="swap()">Login</p>
+    </div>
+    <div style="margin-top:10px;font-size:12px">
+      Device ID: <span id="did-text">******</span>
+      <i class="fas fa-eye" onclick="toggleDID()"></i>
+    </div>
+  </div>
+  <script>
+    const API = "https:                                                                                                              
+    const KEY = "POWER_STAR_786_SECURE";
+                            
+    const current_device_id = btoa(
+      navigator.userAgent +
+        screen.width +
+        screen.height +
+        Intl.DateTimeFormat().resolvedOptions().timeZone
+    ).substring(0, 25);
+    document.getElementById("did-text").innerText =
+      current_device_id.slice(0, 6) + "****";
+                    
+    function swap() {
+      document.getElementById("l-form").classList.toggle("hidden");
+      document.getElementById("r-form").classList.toggle("hidden");
+    }
+                              
+    function toggleP(id) {
+      const f = document.getElementById(id);
+      f.type = f.type === "password" ? "text" : "password";
+    }
+                           
+    function checkPasswordStrength() {
+      const p = document.getElementById("r-pass").value;
+      const bar = document.getElementById("pwd-strength");
+      bar.className = "password-strength";
+      if (p.length < 6) bar.classList.add("strength-weak");
+      else if (p.length < 10) bar.classList.add("strength-medium");
+      else bar.classList.add("strength-strong");
+    }
+                          
+    function toggleDID() {
+      const el = document.getElementById("did-text");
+      el.innerText =
+        el.innerText.includes("*")
+          ? current_device_id
+          : current_device_id.slice(0, 6) + "****";
+    }
+               
+    async function doLogin() {
+      const num = document.getElementById("l-num").value.trim();
+      const pass = document.getElementById("l-pass").value.trim();
+      if (!num || !pass)
+        return Swal.fire("Error", "Fill all fields", "error");
+      const users = await fetch(API).then((r) => r.json());
+      const user = users.find((u) => u.number === num && u.password === pass);
+      if (!user) return Swal.fire("Fail", "Wrong login", "error");
+      if (user.device_id && user.device_id !== current_device_id)
+        return Swal.fire("Blocked", "Other device detected", "error");
+      localStorage.setItem("user", JSON.stringify(user));
+      Swal.fire("Success", "Logged in", "success");
+    }
+                  
+    async function doRegister() {
+      if (!document.getElementById("terms-chk").checked)
+        return Swal.fire("Terms", "Accept terms", "info");
+      const users = await fetch(API).then((r) => r.json());
+      if (users.some((u) => u.number === document.getElementById("r-num").value))
+        return Swal.fire("Error", "Already registered", "error");
+      const payload = {
+        key: KEY,
+        name: document.getElementById("r-name").value,
+        number: document.getElementById("r-num").value,
+        password: document.getElementById("r-pass").value,
+        user_id: "PSSN" + String(users.length + 1).padStart(4, "0"),
+        device_id: current_device_id,
+      };
+      await fetch(API, {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      Swal.fire("Done", "Registered Successfully", "success");
+      swap();
+    }
+  </script>
 </body>
 </html>
