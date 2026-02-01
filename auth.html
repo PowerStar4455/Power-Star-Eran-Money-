@@ -205,241 +205,386 @@
     </div>
 
     <script>
-        const API = "https://script.google.com/macros/s/AKfycbw-S_vAVVP4mBhCTLfQTSixrELS6cDI2l_iEiGsfpDpBAf0Rs8QgHHqJhc6wvKARzMV9g/exec";
-        const KEY = "POWER_STAR_786_SECURE";
-        const SALT = "PS_SECURE_2024";
+// Configuration constants
+const CONFIG = {
+  SHEET_NAME: "Power_Star_Users",
+  SECURITY_KEY: "POWER_STAR_786_SECURE",
+  TIMEZONE: "Asia/Karachi",
+  DATE_FORMAT: "yyyy-MM-dd HH:mm:ss",
+  DEFAULT_BALANCE: 0,
+  DEFAULT_STATUS: "active"
+};
+
+// Column indices for better maintainability
+const COLUMNS = {
+  DATE: 0,
+  NUMBER: 1,
+  NAME: 2,
+  PASSWORD: 3,
+  BALANCE: 4,
+  USER_ID: 5,
+  REFER_BY: 6,
+  STATUS: 7,
+  DEVICE_ID: 8
+};
+
+/**
+ * GET request handler - Retrieve all users
+ * @param {Object} e - Event parameter
+ * @returns {TextOutput} JSON response with user data
+ */
+function doGet(e) {
+  try {
+    const sheet = getSheet();
+    const data = sheet.getDataRange().getValues();
+    const users = [];
+    
+    // Skip header row and process data
+    for (let i = 1; i < data.length; i++) {
+      users.push({
+        date: data[i][COLUMNS.DATE],
+        number: data[i][COLUMNS.NUMBER],
+        name: data[i][COLUMNS.NAME],
+        // Never return password in GET requests
+        balance: data[i][COLUMNS.BALANCE],
+        user_id: data[i][COLUMNS.USER_ID],
+        refer_by: data[i][COLUMNS.REFER_BY],
+        status: data[i][COLUMNS.STATUS],
+        device_id: data[i][COLUMNS.DEVICE_ID] ? "registered" : "not_registered"
+      });
+    }
+    
+    return createJsonResponse({ success: true, data: users });
+    
+  } catch (error) {
+    Logger.log('Error in doGet: ' + error.toString());
+    return createJsonResponse({ 
+      success: false, 
+      message: "Failed to retrieve data",
+      error: error.toString() 
+    });
+  }
+}
+
+/**
+ * POST request handler - Register new user
+ * @param {Object} e - Event parameter with POST data
+ * @returns {TextOutput} JSON response
+ */
+function doPost(e) {
+  try {
+    // Parse request data
+    const data = JSON.parse(e.postData.contents);
+    
+    // Security validation
+    if (!validateSecurityKey(data.key)) {
+      return createJsonResponse({ 
+        success: false, 
+        message: "Unauthorized access" 
+      }, 401);
+    }
+    
+    // Input validation
+    const validationResult = validateUserInput(data);
+    if (!validationResult.valid) {
+      return createJsonResponse({ 
+        success: false, 
+        message: validationResult.message 
+      }, 400);
+    }
+    
+    const sheet = getSheet();
+    
+    // Check for duplicate phone number
+    if (isPhoneNumberExists(sheet, data.number)) {
+      return createJsonResponse({ 
+        success: false, 
+        message: "Phone number already registered" 
+      }, 409);
+    }
+    
+    // Check for duplicate user_id
+    if (isUserIdExists(sheet, data.user_id)) {
+      return createJsonResponse({ 
+        success: false, 
+        message: "User ID already exists" 
+      }, 409);
+    }
+    
+    // One device per account policy
+    if (data.device_id && isDeviceIdExists(sheet, data.device_id)) {
+      return createJsonResponse({ 
+        success: false, 
+        message: "This device is already registered with another account" 
+      }, 409);
+    }
+    
+    // Hash password before storing
+    const hashedPassword = hashPassword(data.password);
+    
+    // Get current timestamp
+    const currentDate = getCurrentTimestamp();
+    
+    // Prepare user data
+    const newUser = [
+      currentDate,                          // A: date
+      sanitizeInput(data.number),           // B: number
+      sanitizeInput(data.name),             // C: name
+      hashedPassword,                       // D: password (hashed)
+      data.balance || CONFIG.DEFAULT_BALANCE, // E: balance
+      sanitizeInput(data.user_id),          // F: user_id
+      sanitizeInput(data.referral) || "",   // G: refer_by
+      data.status || CONFIG.DEFAULT_STATUS, // H: status
+      sanitizeInput(data.device_id) || ""   // I: device_id
+    ];
+    
+    // Add new user to sheet
+    sheet.appendRow(newUser);
+    
+    Logger.log('New user registered: ' + data.user_id);
+    
+    return createJsonResponse({ 
+      success: true, 
+      message: "User registered successfully",
+      user_id: data.user_id
+    });
+    
+  } catch (error) {
+    Logger.log('Error in doPost: ' + error.toString());
+    return createJsonResponse({ 
+      success: false, 
+      message: "Registration failed",
+      error: error.toString() 
+    }, 500);
+  }
+}
+
+/**
+ * Login verification function
+ * @param {Object} e - Event parameter with login data
+ * @returns {TextOutput} JSON response
+ */
+function doLogin(e) {
+  try {
+    const data = JSON.parse(e.postData.contents);
+    
+    // Security validation
+    if (!validateSecurityKey(data.key)) {
+      return createJsonResponse({ 
+        success: false, 
+        message: "Unauthorized access" 
+      }, 401);
+    }
+    
+    const sheet = getSheet();
+    const allData = sheet.getDataRange().getValues();
+    
+    // Find user by phone number
+    for (let i = 1; i < allData.length; i++) {
+      if (allData[i][COLUMNS.NUMBER] === data.number) {
+        const storedHashedPassword = allData[i][COLUMNS.PASSWORD];
         
-        const DEVICE_ID = generateDeviceID();
-        
-        function generateDeviceID() {
-            const nav = navigator;
-            const screen = window.screen;
-            const fingerprint = `${nav.userAgent}|${nav.language}|${screen.width}x${screen.height}`;
-            return "PS-" + CryptoJS.MD5(fingerprint).toString().substring(0, 12).toUpperCase();
+        // Verify password
+        if (verifyPassword(data.password, storedHashedPassword)) {
+          
+          // Check device_id for one device policy
+          const storedDeviceId = allData[i][COLUMNS.DEVICE_ID];
+          
+          if (storedDeviceId && storedDeviceId !== data.device_id) {
+            return createJsonResponse({ 
+              success: false, 
+              message: "Account is registered on another device" 
+            }, 403);
+          }
+          
+          // Update device_id if not set
+          if (!storedDeviceId && data.device_id) {
+            sheet.getRange(i + 1, COLUMNS.DEVICE_ID + 1).setValue(data.device_id);
+          }
+          
+          return createJsonResponse({ 
+            success: true, 
+            message: "Login successful",
+            user: {
+              name: allData[i][COLUMNS.NAME],
+              user_id: allData[i][COLUMNS.USER_ID],
+              balance: allData[i][COLUMNS.BALANCE],
+              status: allData[i][COLUMNS.STATUS]
+            }
+          });
+        } else {
+          return createJsonResponse({ 
+            success: false, 
+            message: "Invalid password" 
+          }, 401);
         }
-        
-        function hashPassword(password) {
-            return CryptoJS.SHA256(password + SALT).toString();
+      }
+    }
+    
+    return createJsonResponse({ 
+      success: false, 
+      message: "User not found" 
+    }, 404);
+    
+  } catch (error) {
+    Logger.log('Error in doLogin: ' + error.toString());
+    return createJsonResponse({ 
+      success: false, 
+      message: "Login failed",
+      error: error.toString() 
+    }, 500);
+  }
+}
+
+// ============== Helper Functions ==============
+
+/**
+ * Get the spreadsheet sheet
+ */
+function getSheet() {
+  return SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.SHEET_NAME);
+}
+
+/**
+ * Create JSON response
+ */
+function createJsonResponse(data, statusCode = 200) {
+  const output = ContentService.createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
+  
+  if (statusCode !== 200) {
+    // Note: Apps Script doesn't support HTTP status codes, but we log them
+    Logger.log('Response status: ' + statusCode);
+  }
+  
+  return output;
+}
+
+/**
+ * Validate security key
+ */
+function validateSecurityKey(key) {
+  return key === CONFIG.SECURITY_KEY;
+}
+
+/**
+ * Get current timestamp in Pakistan timezone
+ */
+function getCurrentTimestamp() {
+  return Utilities.formatDate(
+    new Date(), 
+    CONFIG.TIMEZONE, 
+    CONFIG.DATE_FORMAT
+  );
+}
+
+/**
+ * Validate user input
+ */
+function validateUserInput(data) {
+  if (!data.number || data.number.trim() === "") {
+    return { valid: false, message: "Phone number is required" };
+  }
+  
+  if (!data.name || data.name.trim() === "") {
+    return { valid: false, message: "Name is required" };
+  }
+  
+  if (!data.password || data.password.length < 6) {
+    return { valid: false, message: "Password must be at least 6 characters" };
+  }
+  
+  if (!data.user_id || data.user_id.trim() === "") {
+    return { valid: false, message: "User ID is required" };
+  }
+  
+  if (!data.device_id || data.device_id.trim() === "") {
+    return { valid: false, message: "Device ID is required" };
+  }
+  
+  return { valid: true };
+}
+
+/**
+ * Check if phone number already exists
+ */
+function isPhoneNumberExists(sheet, phoneNumber) {
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][COLUMNS.NUMBER] === phoneNumber) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Check if user_id already exists
+ */
+function isUserIdExists(sheet, userId) {
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][COLUMNS.USER_ID] === userId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Check if device_id already exists
+ */
+function isDeviceIdExists(sheet, deviceId) {
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][COLUMNS.DEVICE_ID] === deviceId && data[i][COLUMNS.DEVICE_ID] !== "") {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Hash password using SHA-256
+ */
+function hashPassword(password) {
+  const rawHash = Utilities.computeDigest(
+    Utilities.DigestAlgorithm.SHA_256,
+    password,
+    Utilities.Charset.UTF_8
+  );
+  
+  // Convert to hex string
+  let hashString = '';
+  for (let i = 0; i < rawHash.length; i++) {
+    const byte = rawHash[i];
+    if (byte < 0) {
+      hashString += ((byte + 256).toString(16)).padStart(2, '0');
+    } else {
+      hashString += (byte.toString(16)).padStart(2, '0');
+    }
+  }
+  
+  return hashString;
+}
+
+/**
+ * Verify password against hash
+ */
+function verifyPassword(plainPassword, hashedPassword) {
+  return hashPassword(plainPassword) === hashedPassword;
+}
+
+/**
+ * Sanitize input to prevent injection
+ */
+function sanitizeInput(input) {
+  if (typeof input !== 'string') {
+    return input;
+  }
+  return input.trim().replace(/[<>]/g, '');
         }
-        
-        function checkPasswordStrength() {
-            const pass = document.getElementById('r-pass').value;
-            const bar = document.getElementById('pwd-strength');
-            
-            if(pass.length === 0) {
-                bar.className = 'password-strength';
-                return;
-            }
-            
-            let strength = 0;
-            if(pass.length >= 8) strength++;
-            if(/[a-z]/.test(pass) && /[A-Z]/.test(pass)) strength++;
-            if(/\d/.test(pass)) strength++;
-            if(/[@$!%*?&#]/.test(pass)) strength++;
-            
-            if(strength <= 1) bar.className = 'password-strength strength-weak';
-            else if(strength <= 3) bar.className = 'password-strength strength-medium';
-            else bar.className = 'password-strength strength-strong';
-        }
 
-        function swap() { 
-            document.getElementById('l-form').classList.toggle('hidden'); 
-            document.getElementById('r-form').classList.toggle('hidden'); 
-            document.querySelectorAll('input').forEach(inp => inp.value = '');
-        }
-
-        function toggleP(id) { 
-            const x = document.getElementById(id); 
-            const eye = x.nextElementSibling;
-            if(x.type === "password") {
-                x.type = "text";
-                eye.classList.remove('fa-eye');
-                eye.classList.add('fa-eye-slash');
-            } else {
-                x.type = "password";
-                eye.classList.remove('fa-eye-slash');
-                eye.classList.add('fa-eye');
-            }
-        }
-
-        function toggleDID() {
-            const txt = document.getElementById('did-text');
-            txt.innerText = txt.innerText === "********" ? DEVICE_ID : "********";
-        }
-
-        const rateLimiter = {
-            attempts: 0,
-            lastAttempt: 0,
-            check: function() {
-                const now = Date.now();
-                if(now - this.lastAttempt < 3000) {
-                    this.attempts++;
-                    if(this.attempts > 3) {
-                        Swal.fire("Too Fast!", "Please wait before trying again", "warning");
-                        return false;
-                    }
-                } else {
-                    this.attempts = 0;
-                }
-                this.lastAttempt = now;
-                return true;
-            }
-        };
-
-        async function doLogin() {
-            if(!rateLimiter.check()) return;
-            
-            const num = document.getElementById('l-num').value.trim();
-            const pass = document.getElementById('l-pass').value.trim();
-            const btn = document.getElementById('login-btn');
-            
-            if(!num || !pass) {
-                return Swal.fire("Missing Fields", "Enter number and password", "warning");
-            }
-
-            if(!/^3\d{9}$/.test(num)) {
-                return Swal.fire("Invalid Number", "Must start with 3 and be 10 digits", "error");
-            }
-
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Authenticating...';
-
-            try {
-                const res = await fetch(API);
-                const users = await res.json();
-                const Pass = Password(pass);
-                
-                const user = users.find(u => 
-                    String(u.number).trim() === num && 
-                    String(u.password).trim() === Pass
-                );
-                
-                if(user) {
-                    if(user.status === "blocked") {
-                        btn.disabled = false;
-                        btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
-                        return Swal.fire("Blocked", "Account suspended. Contact admin.", "error");
-                    }
-                    
-                    localStorage.setItem('power_star_user', JSON.stringify(user));
-                    
-                    await Swal.fire({
-                        icon: 'success',
-                        title: 'Welcome!',
-                        text: 'ID: ' + user.user_id,
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
-                    
-                    window.location.href = "dashboard.html";
-                } else {
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
-                    Swal.fire("Failed", "Wrong number or password", "error");
-                }
-            } catch(e) {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
-                Swal.fire("Error", "Connection failed: " + e.message, "error");
-            }
-        }
-
-        async function doRegister() {
-            if(!rateLimiter.check()) return;
-            
-            const name = document.getElementById('r-name').value.trim();
-            const num = document.getElementById('r-num').value.trim();
-            const pass = document.getElementById('r-pass').value.trim();
-            const ref = document.getElementById('r-ref').value.trim().toUpperCase();
-            const accepted = document.getElementById('terms-chk').checked;
-            const btn = document.getElementById('reg-btn');
-
-            if(!name || !num || !pass) {
-                return Swal.fire("Incomplete", "Fill all required fields", "warning");
-            }
-
-            if(name.length < 3) {
-                return Swal.fire("Invalid Name", "Name too short (min 3 chars)", "error");
-            }
-
-            if(!/^3\d{9}$/.test(num)) {
-                return Swal.fire("Invalid Number", "Must start with 3 and be 10 digits", "error");
-            }
-
-            if(pass.length < 6) {
-                return Swal.fire("Weak Password", "Minimum 6 characters required", "error");
-            }
-
-            if(!accepted) {
-                return Swal.fire("Terms Required", "Accept Terms & Conditions", "info");
-            }
-
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
-            
-            try {
-                const res = await fetch(API);
-                const all = await res.json();
-                
-                if(all.some(u => String(u.number).trim() === num)) {
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-user-plus"></i> Register Now';
-                    return Swal.fire("Exists", "Number already registered", "error");
-                }
-
-                const userID = "PSSN" + String(all.length + 1).padStart(4, '0');
-                let initialBalance = 0;
-                let referralValid = false;
-                
-                if(ref) {
-                    const referrer = all.find(u => u.user_id === ref);
-                    if(referrer) {
-                        initialBalance = 50;
-                        referralValid = true;
-                    }
-                }
-
-                const hashedPassword = hashPassword(pass);
-
-                await fetch(API, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        key: KEY,
-                        name: name,
-                        number: num,
-                        password: Password,
-                        balance: initialBalance,
-                        user_id: userID,
-                        referral: ref || "",
-                        status: "active"
-                    })
-                });
-
-                await Swal.fire({
-                    icon: 'success',
-                    title: 'Success!',
-                    html: `
-                        <p><b>User ID:</b> ${userID}</p>
-                        <p><b>Phone:</b> +92${num}</p>
-                        <p><b>Balance:</b> Rs. ${initialBalance}</p>
-                        ${referralValid ? '<p style="color: #10b981;">✓ Referral bonus!</p>' : ''}
-                    `,
-                    confirmButtonText: 'Login',
-                    confirmButtonColor: '#fbbf24'
-                });
-                
-                location.reload();
-
-            } catch(e) {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-user-plus"></i> Register Now';
-                Swal.fire("Error", "Failed: " + e.message, "error");
-            }
-        }
-        
-        window.onload = () => document.querySelectorAll('input').forEach(i => i.value = '');
     </script>
-</body>
+ </body>
     </html>
