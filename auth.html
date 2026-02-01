@@ -9,21 +9,214 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <style>
-/* --- SAME CSS (UNCHANGED) --- */
-*{box-sizing:border-box;margin:0;padding:0;font-family:Poppins,sans-serif}
-body{background:#0f172a;color:#fff;display:flex;justify-content:center;align-items:center;min-height:100vh}
-.auth-box{background:#1e293b;width:100%;max-width:400px;border-radius:25px;padding:30px;border:1px solid #fbbf24}
-.hidden{display:none}
-.group{position:relative;margin-bottom:18px}
-.prefix{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#fbbf24;font-weight:bold}
-.num-in{padding-left:60px}
-input{width:100%;padding:15px;border-radius:15px;background:#0f172a;border:1px solid #334155;color:#fff}
-.eye{position:absolute;right:15px;top:50%;transform:translateY(-50%);cursor:pointer}
-button{width:100%;padding:15px;background:#fbbf24;border:none;border-radius:15px;font-weight:800}
-.password-strength{height:4px;margin-top:5px;border-radius:5px}
-.strength-weak{background:red;width:33%}
-.strength-medium{background:orange;width:66%}
-.strength-strong{background:green;width:100%}
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Poppins', sans-serif;
+}
+
+body {
+  background: #0f172a;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.auth-box {
+  background: #1e293b;
+  width: 100%;
+  max-width: 400px;
+  border-radius: 25px;
+  padding: 30px;
+  border: 1px solid #fbbf24;
+}
+
+.hidden {
+  display: none;
+}
+
+/* Title */
+.auth-box h2 {
+  text-align: center;
+  margin-bottom: 22px;
+  color: #fbbf24;
+  font-size: 22px;
+  letter-spacing: 1px;
+}
+
+/* Input Groups */
+.group {
+  position: relative;
+  margin-bottom: 18px;
+}
+
+.prefix {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #fbbf24;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.num-in {
+  padding-left: 60px !important;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="tel"] {
+  width: 100%;
+  padding: 14px 15px;
+  border-radius: 15px;
+  background: #0f172a;
+  border: 1px solid #334155;
+  color: #fff;
+  font-size: 14px;
+  outline: none;
+  transition: border 0.3s;
+}
+
+input::placeholder {
+  color: #64748b;
+}
+
+input:focus {
+  border-color: #fbbf24;
+}
+
+/* Eye icon */
+.eye {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #64748b;
+  transition: color 0.3s;
+}
+
+.eye:hover {
+  color: #fbbf24;
+}
+
+/* Standalone inputs (name, referral) — wrapped in .group for spacing */
+.standalone-input {
+  margin-bottom: 18px;
+}
+
+.standalone-input input {
+  width: 100%;
+  padding: 14px 15px;
+  border-radius: 15px;
+  background: #0f172a;
+  border: 1px solid #334155;
+  color: #fff;
+  font-size: 14px;
+  outline: none;
+  transition: border 0.3s;
+}
+
+.standalone-input input:focus {
+  border-color: #fbbf24;
+}
+
+.standalone-input input::placeholder {
+  color: #64748b;
+}
+
+/* Password strength bar */
+.password-strength {
+  height: 4px;
+  margin-top: 6px;
+  border-radius: 5px;
+  background: #334155;
+  overflow: hidden;
+}
+
+.strength-bar {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.3s, background 0.3s;
+  width: 0%;
+}
+
+.strength-weak   { background: #ef4444; width: 33%; }
+.strength-medium { background: #f97316; width: 66%; }
+.strength-strong { background: #22c55e; width: 100%; }
+
+/* Terms checkbox */
+.terms-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.terms-row input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #fbbf24;
+  cursor: pointer;
+}
+
+/* Button */
+button {
+  width: 100%;
+  padding: 14px;
+  background: #fbbf24;
+  color: #0f172a;
+  border: none;
+  border-radius: 15px;
+  font-weight: 800;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.1s;
+  margin-bottom: 14px;
+}
+
+button:hover {
+  background: #f59e0b;
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+/* Swap link */
+.swap-link {
+  text-align: center;
+  color: #94a3b8;
+  font-size: 13px;
+  cursor: pointer;
+  transition: color 0.3s;
+  user-select: none;
+}
+
+.swap-link:hover {
+  color: #fbbf24;
+}
+
+/* Device ID row */
+.device-row {
+  margin-top: 16px;
+  font-size: 11px;
+  color: #64748b;
+  text-align: center;
+}
+
+.device-row .eye {
+  position: static;
+  transform: none;
+  font-size: 11px;
+  margin-left: 6px;
+}
 </style>
 </head>
 
@@ -31,134 +224,216 @@ button{width:100%;padding:15px;background:#fbbf24;border:none;border-radius:15px
 
 <div class="auth-box">
 
-<!-- LOGIN -->
-<div id="l-form">
-<h2>Secure Login</h2>
+  <!-- ========== LOGIN FORM ========== -->
+  <div id="l-form">
+    <h2>Secure Login</h2>
 
-<div class="group">
-<span class="prefix">+92</span>
-<input id="l-num" class="num-in" placeholder="3001234567">
+    <div class="group">
+      <span class="prefix">+92</span>
+      <input type="tel" id="l-num" class="num-in" placeholder="3001234567">
+    </div>
+
+    <div class="group">
+      <input type="password" id="l-pass" placeholder="Password">
+      <i class="fas fa-eye eye" onclick="toggleP('l-pass', this)"></i>
+    </div>
+
+    <button onclick="doLogin()">Login</button>
+    <p class="swap-link" onclick="swap()">Don't have an account? <strong>Register</strong></p>
+  </div>
+
+  <!-- ========== REGISTER FORM ========== -->
+  <div id="r-form" class="hidden">
+    <h2>Create Account</h2>
+
+    <div class="standalone-input">
+      <input type="text" id="r-name" placeholder="Full Name">
+    </div>
+
+    <div class="group">
+      <span class="prefix">+92</span>
+      <input type="tel" id="r-num" class="num-in" placeholder="3001234567">
+    </div>
+
+    <div class="group">
+      <input type="password" id="r-pass" placeholder="Password" oninput="checkPasswordStrength()">
+      <i class="fas fa-eye eye" onclick="toggleP('r-pass', this)"></i>
+      <div class="password-strength">
+        <div class="strength-bar" id="pwd-bar"></div>
+      </div>
+    </div>
+
+    <div class="standalone-input">
+      <input type="text" id="r-ref" placeholder="Referral Code (optional)">
+    </div>
+
+    <div class="terms-row">
+      <input type="checkbox" id="terms-chk">
+      <label for="terms-chk">I accept the <strong style="color:#fbbf24;cursor:pointer;">Terms & Conditions</strong></label>
+    </div>
+
+    <button onclick="doRegister()">Register</button>
+    <p class="swap-link" onclick="swap()">Already have an account? <strong>Login</strong></p>
+  </div>
+
+  <!-- Device ID -->
+  <div class="device-row">
+    Device ID: <span id="did-text">######</span>
+    <i class="fas fa-eye eye" onclick="toggleDID()"></i>
+  </div>
+
 </div>
 
-<div class="group">
-<input type="password" id="l-pass" placeholder="Password">
-<i class="fas fa-eye eye" onclick="toggleP('l-pass')"></i>
-</div>
-
-<button id="login-btn" onclick="doLogin()">Login</button>
-<p onclick="swap()">Create Account</p>
-</div>
-
-<!-- REGISTER -->
-<div id="r-form" class="hidden">
-<h2>Register</h2>
-
-<input id="r-name" placeholder="Full Name">
-
-<div class="group">
-<span class="prefix">+92</span>
-<input id="r-num" class="num-in" placeholder="3001234567">
-</div>
-
-<div class="group">
-<input type="password" id="r-pass" placeholder="Password" oninput="checkPasswordStrength()">
-<i class="fas fa-eye eye" onclick="toggleP('r-pass')"></i>
-<div id="pwd-strength" class="password-strength"></div>
-</div>
-
-<input id="r-ref" placeholder="Referral Code">
-
-<label>
-<input type="checkbox" id="terms-chk"> Accept Terms
-</label>
-
-<button id="reg-btn" onclick="doRegister()">Register</button>
-<p onclick="swap()">Login</p>
-</div>
-
-<div style="margin-top:10px;font-size:12px">
-Device ID: <span id="did-text">******</span>
-<i class="fas fa-eye" onclick="toggleDID()"></i>
-</div>
-
-</div>
-
+<!-- ========== SCRIPT ========== -->
 <script>
-const API="https://script.google.com/macros/s/AKfycbxG5IHg_SLzmygNLPpBTzSAX07Ydb2Ixqyg0-YOKReiBbSVfkggVfCoCPWaCBzromFPSA/exec";
-const KEY="POWER_STAR_786_SECURE";
+// ─── CONFIG ───────────────────────────────────────
+const API = "https://script.google.com/macros/s/AKfycbxG5IHg_SLzmygNLPpBTzSAX07Ydb2Ixqyg0-YOKReiBbSVfkggVfCoCPWaCBzromFPSA/exec";
+const KEY = "POWER_STAR_786_SECURE";
 
-/* Stronger Device ID */
-const current_device_id=btoa(
- navigator.userAgent + screen.width + screen.height + Intl.DateTimeFormat().resolvedOptions().timeZone
-).substring(0,25);
+// ─── DEVICE ID (deterministic, per-browser) ───────
+const current_device_id = btoa(
+  navigator.userAgent + screen.width + screen.height +
+  Intl.DateTimeFormat().resolvedOptions().timeZone
+).substring(0, 25);
 
-document.getElementById("did-text").innerText=current_device_id.slice(0,6)+"****";
+document.getElementById("did-text").innerText = current_device_id.slice(0, 6) + "****";
 
-/* Swap Forms */
-function swap(){
- document.getElementById("l-form").classList.toggle("hidden");
- document.getElementById("r-form").classList.toggle("hidden");
+// ─── SWAP FORMS ───────────────────────────────────
+function swap() {
+  document.getElementById("l-form").classList.toggle("hidden");
+  document.getElementById("r-form").classList.toggle("hidden");
 }
 
-/* Show / Hide Password */
-function toggleP(id){
- const f=document.getElementById(id);
- f.type=f.type==="password"?"text":"password";
+// ─── TOGGLE PASSWORD VISIBILITY ───────────────────
+function toggleP(id, icon) {
+  const input = document.getElementById(id);
+  if (input.type === "password") {
+    input.type = "text";
+    icon.classList.remove("fa-eye");
+    icon.classList.add("fa-eye-slash");
+  } else {
+    input.type = "password";
+    icon.classList.remove("fa-eye-slash");
+    icon.classList.add("fa-eye");
+  }
 }
 
-/* Password Strength */
-function checkPasswordStrength(){
- const p=document.getElementById("r-pass").value;
- const bar=document.getElementById("pwd-strength");
- bar.className="password-strength";
- if(p.length<6) bar.classList.add("strength-weak");
- else if(p.length<10) bar.classList.add("strength-medium");
- else bar.classList.add("strength-strong");
+// ─── PASSWORD STRENGTH ────────────────────────────
+function checkPasswordStrength() {
+  const p   = document.getElementById("r-pass").value;
+  const bar = document.getElementById("pwd-bar");
+
+  // Remove all strength classes first
+  bar.className = "strength-bar";
+
+  if (p.length === 0) {
+    // empty → no color
+  } else if (p.length < 6) {
+    bar.classList.add("strength-weak");
+  } else if (p.length < 10) {
+    bar.classList.add("strength-medium");
+  } else {
+    bar.classList.add("strength-strong");
+  }
 }
 
-/* Toggle Device ID */
-function toggleDID(){
- const el=document.getElementById("did-text");
- el.innerText = el.innerText.includes("*") ? current_device_id : "******";
+// ─── TOGGLE DEVICE ID ─────────────────────────────
+function toggleDID() {
+  const el = document.getElementById("did-text");
+  el.innerText = el.innerText.includes("*") ? current_device_id : current_device_id.slice(0, 6) + "****";
 }
 
-/* LOGIN */
-async function doLogin(){
- const num=l-num.value.trim();
- const pass=l-pass.value.trim();
- if(!num||!pass) return Swal.fire("Error","Fill all fields","error");
+// ─── LOGIN ────────────────────────────────────────
+async function doLogin() {
+  const num  = document.getElementById("l-num").value.trim();
+  const pass = document.getElementById("l-pass").value.trim();
 
- const users=await fetch(API).then(r=>r.json());
- const user=users.find(u=>u.number==num && u.password==pass);
+  if (!num || !pass) {
+    return Swal.fire({ icon: "warning", title: "Fields Empty", text: "Please fill all fields." });
+  }
 
- if(!user) return Swal.fire("Fail","Wrong login","error");
- if(user.device_id && user.device_id!==current_device_id)
-   return Swal.fire("Blocked","Other device detected","error");
+  // Compare plain text password directly
+  Swal.showLoading();
 
- localStorage.setItem("user",JSON.stringify(user));
- Swal.fire("Success","Logged in","success");
+  let users;
+  try {
+    users = await fetch(API).then(r => r.json());
+  } catch (e) {
+    return Swal.fire({ icon: "error", title: "Network Error", text: "Could not connect. Try again." });
+  }
+
+  const user = users.find(u => u.number === num && u.password === pass);
+
+  if (!user) {
+    return Swal.fire({ icon: "error", title: "Login Failed", text: "Wrong number or password." });
+  }
+
+  // Device lock check
+  if (user.device_id && user.device_id !== current_device_id) {
+    return Swal.fire({ icon: "error", title: "Blocked", text: "This account is linked to another device." });
+  }
+
+  localStorage.setItem("ps_user", JSON.stringify(user));
+  Swal.fire({ icon: "success", title: "Success", text: "Logged in successfully!" });
 }
 
-/* REGISTER */
-async function doRegister(){
- if(!terms-chk.checked) return Swal.fire("Terms","Accept terms","info");
+// ─── REGISTER ─────────────────────────────────────
+async function doRegister() {
+  const termsChecked = document.getElementById("terms-chk").checked;
+  if (!termsChecked) {
+    return Swal.fire({ icon: "info", title: "Terms", text: "Please accept the Terms & Conditions." });
+  }
 
- const users=await fetch(API).then(r=>r.json());
- if(users.some(u=>u.number==r-num.value))
-   return Swal.fire("Error","Already registered","error");
+  const name   = document.getElementById("r-name").value.trim();
+  const num    = document.getElementById("r-num").value.trim();
+  const pass   = document.getElementById("r-pass").value.trim();
+  const ref    = document.getElementById("r-ref").value.trim();
 
- const payload={
-   key:KEY,
-   name:r-name.value,
-   number:r-num.value,
-   password:r-pass.value,
-   user_id:"PSSN"+String(users.length+1).padStart(4,"0"),
-   device_id:current_device_id
- };
+  if (!name || !num || !pass) {
+    return Swal.fire({ icon: "warning", title: "Fields Empty", text: "Please fill all required fields." });
+  }
 
- await fetch(API,{method:"POST",body:JSON.stringify(payload)});
- Swal.fire("Done","Registered Successfully","success");
- swap();
+  if (num.length < 10) {
+    return Swal.fire({ icon: "warning", title: "Invalid Number", text: "Enter a valid 10-digit number." });
+  }
+
+  if (pass.length < 6) {
+    return Swal.fire({ icon: "warning", title: "Weak Password", text: "Password must be at least 6 characters." });
+  }
+
+  Swal.showLoading();
+
+  let users;
+  try {
+    users = await fetch(API).then(r => r.json());
+  } catch (e) {
+    return Swal.fire({ icon: "error", title: "Network Error", text: "Could not connect. Try again." });
+  }
+
+  // Duplicate check
+  if (users.some(u => u.number === num)) {
+    return Swal.fire({ icon: "error", title: "Already Registered", text: "This number is already in use." });
+  }
+
+  const payload = {
+    key:       KEY,
+    name:      name,
+    number:    num,
+    password:  pass,                 // ← plain text
+    referral:  ref,
+    user_id:   "PSSN" + String(users.length + 1).padStart(4, "0"),
+    device_id: current_device_id
+  };
+
+  try {
+    await fetch(API, { method: "POST", body: JSON.stringify(payload) });
+  } catch (e) {
+    return Swal.fire({ icon: "error", title: "Network Error", text: "Registration failed. Try again." });
+  }
+
+  Swal.fire({ icon: "success", title: "Done!", text: "Registered successfully." }).then(() => {
+    swap(); // go back to login
+  });
 }
 </script>
 
