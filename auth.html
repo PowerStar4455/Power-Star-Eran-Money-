@@ -307,11 +307,11 @@
             try {
                 const res = await fetch(API);
                 const users = await res.json();
-                const hashedPass = hashPassword(pass);
+                const Pass = Password(pass);
                 
                 const user = users.find(u => 
                     String(u.number).trim() === num && 
-                    String(u.password).trim() === hashedPass
+                    String(u.password).trim() === Pass
                 );
                 
                 if(user) {
@@ -409,7 +409,7 @@
                         key: KEY,
                         name: name,
                         number: num,
-                        password: hashedPassword,
+                        password: Password,
                         balance: initialBalance,
                         user_id: userID,
                         referral: ref || "",
