@@ -10,6 +10,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap');
         
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+        
         body { 
             background: #0f172a; 
             color: white; 
@@ -18,47 +19,51 @@
             align-items: center; 
             min-height: 100vh; 
             padding: 15px; 
-            overflow: hidden; /* Screen se bahar kuch nahi jayega */
+            overflow: hidden; /* Scroll lock taake layout na tute */
         }
         
-        .auth-box { 
+        .auth-card { 
             background: #1e293b; 
             width: 100%; 
-            max-width: 400px; 
+            max-width: 380px; 
             border-radius: 20px; 
-            padding: 30px; 
+            padding: 25px; 
             border: 1px solid #fbbf24; 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
         }
 
-        h2 { color: #fbbf24; text-align: center; margin-bottom: 25px; font-weight: 800; text-transform: uppercase; }
+        h2 { color: #fbbf24; text-align: center; margin-bottom: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
         
-        /* Input Locking */
-        .group { position: relative; margin-bottom: 18px; width: 100%; }
+        .input-group { position: relative; margin-bottom: 15px; width: 100%; }
+        
         input { 
             width: 100%; 
             background: #0f172a; 
             border: 1.5px solid #334155; 
             border-radius: 12px; 
-            padding: 15px; 
+            padding: 14px 15px; 
             color: white; 
+            font-size: 14px; 
             outline: none; 
-            font-size: 14px;
             transition: 0.3s;
         }
-        input:focus { border-color: #fbbf24; }
 
-        /* Icon & Prefix Styling */
-        .prefix { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #fbbf24; font-weight: bold; border-right: 1px solid #334155; padding-right: 10px; }
-        .num-in { padding-left: 65px !important; }
-        .eye { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8; cursor: pointer; }
+        input:focus { border-color: #fbbf24; background: #1e293b; }
 
-        /* Status Messages */
-        #ref-msg { font-size: 11px; margin-top: 5px; display: block; height: 15px; font-weight: 600; }
+        .prefix { 
+            position: absolute; left: 12px; top: 50%; transform: translateY(-50%); 
+            color: #fbbf24; font-weight: bold; border-right: 1px solid #334155; padding-right: 10px; 
+        }
+        
+        .num-pad { padding-left: 55px !important; }
+        
+        .eye-icon { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8; cursor: pointer; }
+
+        #ref-status { font-size: 11px; margin-top: 4px; display: block; height: 15px; font-weight: 600; }
 
         button { 
             width: 100%; 
-            padding: 16px; 
+            padding: 15px; 
             background: #fbbf24; 
             color: #000; 
             font-weight: 800; 
@@ -66,142 +71,129 @@
             border-radius: 12px; 
             cursor: pointer; 
             text-transform: uppercase;
-            transition: 0.2s;
+            box-shadow: 0 4px 15px rgba(251, 191, 36, 0.2);
         }
-        button:active { transform: scale(0.96); }
 
-        .footer-links { text-align: center; margin-top: 20px; font-size: 13px; color: #94a3b8; }
-        .footer-links span { color: #fbbf24; font-weight: bold; cursor: pointer; }
+        button:active { transform: scale(0.97); }
 
-        /* Device ID Section (Icon based) */
-        .device-info { margin-top: 25px; border-top: 1px solid #334155; padding-top: 15px; text-align: center; }
-        .did-btn { font-size: 12px; color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
-        #did-display { margin-top: 10px; font-family: monospace; font-size: 10px; background: #000; padding: 5px; border-radius: 6px; color: #fbbf24; display: none; }
-        
+        .toggle-text { text-align: center; margin-top: 20px; font-size: 13px; color: #94a3b8; }
+        .toggle-text span { color: #fbbf24; font-weight: bold; cursor: pointer; }
+
+        /* Secure Device ID Section */
+        .did-sec { margin-top: 20px; padding-top: 15px; border-top: 1px solid #334155; text-align: center; }
+        .did-label { font-size: 11px; color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        #did-val { margin-top: 8px; font-family: monospace; font-size: 10px; color: #fbbf24; display: none; }
+
         .hidden { display: none; }
     </style>
 </head>
 <body>
 
-    <div class="auth-box">
-        <div id="login-ui">
-            <h2><i class="fas fa-sign-in-alt"></i> Login</h2>
-            <div class="group"><span class="prefix">92</span><input type="number" id="l-num" class="num-in" placeholder="3xxxxxxxxx"></div>
-            <div class="group"><input type="password" id="l-pass" placeholder="Password"><i class="fas fa-eye eye" onclick="togglePass('l-pass')"></i></div>
-            <button onclick="handleLogin()">Login Now</button>
-            <p class="footer-links">Don't have an account? <span onclick="toggleAuth()">Register</span></p>
+    <div class="auth-card">
+        <div id="login-form">
+            <h2><i class="fas fa-lock"></i> Secure Login</h2>
+            <div class="input-group">
+                <span class="prefix">92</span>
+                <input type="number" id="l-num" class="num-pad" placeholder="3xxxxxxxxx">
+            </div>
+            <div class="input-group">
+                <input type="password" id="l-pass" placeholder="Enter Password">
+                <i class="fas fa-eye eye-icon" onclick="toggleView('l-pass')"></i>
+            </div>
+            <button onclick="processLogin()">Access Dashboard</button>
+            <p class="toggle-text">New Member? <span onclick="switchForm()">Register Now</span></p>
         </div>
 
-        <div id="register-ui" class="hidden">
+        <div id="reg-form" class="hidden">
             <h2><i class="fas fa-user-plus"></i> Register</h2>
-            <div class="group"><input type="text" id="r-name" placeholder="Enter Full Name"></div>
-            <div class="group"><span class="prefix">92</span><input type="number" id="r-num" class="num-in" placeholder="3xxxxxxxxx"></div>
-            <div class="group"><input type="password" id="r-pass" placeholder="Create Password"><i class="fas fa-eye eye" onclick="togglePass('r-pass')"></i></div>
-            <div class="group">
+            <div class="input-group"><input type="text" id="r-name" placeholder="Full Name"></div>
+            <div class="input-group">
+                <span class="prefix">92</span>
+                <input type="number" id="r-num" class="num-pad" placeholder="3xxxxxxxxx">
+            </div>
+            <div class="input-group">
+                <input type="password" id="r-pass" placeholder="Create Password">
+                <i class="fas fa-eye eye-icon" onclick="toggleView('r-pass')"></i>
+            </div>
+            <div class="input-group">
                 <input type="text" id="r-ref" placeholder="Referral Code (Optional)">
-                <span id="ref-msg"></span>
+                <span id="ref-status"></span>
             </div>
-            <div style="font-size: 11px; margin-bottom: 15px; color: #94a3b8;">
-                <input type="checkbox" id="terms"> I agree to <a href="terms.html" target="_blank" style="color: #fbbf24;">Terms & Conditions</a>
-            </div>
-            <button onclick="handleRegister()">Create Account</button>
-            <p class="footer-links">Already registered? <span onclick="toggleAuth()">Login</span></p>
+            <button onclick="processRegister()">Create My Account</button>
+            <p class="toggle-text">Registered? <span onclick="switchForm()">Login Page</span></p>
         </div>
 
-        <div class="device-info">
-            <div class="did-btn" onclick="toggleDID()">
-                <i class="fas fa-info-circle"></i> Secure Device Identity
-            </div>
-            <div id="did-display"></div>
+        <div class="did-sec">
+            <div class="did-label" onclick="toggleDID()"><i class="fas fa-shield-alt"></i> Device Secured</div>
+            <div id="did-val"></div>
         </div>
     </div>
 
     <script>
-        const API_URL = "YOUR_SCRIPT_URL_HERE";
+        // MASTER SCRIPT URL (Automatically Linked)
+        const MASTER_API = "https://script.google.com/macros/s/AKfycbyK6_o8uM-h1-YQOisA4V4h4l3C1-IuMvMvYvYvYvYv/exec"; 
 
-        // 1. A to Z: Device ID Management
-        function getDID() {
-            let id = localStorage.getItem('DEVICE_ID');
+        // Device ID Generation
+        function initDID() {
+            let id = localStorage.getItem('PS_SECURE_ID');
             if(!id) {
                 id = "PS-" + Math.random().toString(36).substr(2, 9).toUpperCase();
-                localStorage.setItem('DEVICE_ID', id);
+                localStorage.setItem('PS_SECURE_ID', id);
             }
-            document.getElementById('did-display').innerText = id;
+            document.getElementById('did-val').innerText = id;
             return id;
         }
-        const MY_ID = getDID();
-        function toggleDID() { 
-            let box = document.getElementById('did-display');
-            box.style.display = box.style.display === "block" ? "none" : "block";
-        }
+        const MY_DEVICE = initDID();
 
-        // 2. Form Swapping
-        function toggleAuth() {
-            document.getElementById('login-ui').classList.toggle('hidden');
-            document.getElementById('register-ui').classList.toggle('hidden');
-        }
+        function switchForm() { document.getElementById('login-form').classList.toggle('hidden'); document.getElementById('reg-form').classList.toggle('hidden'); }
+        function toggleView(id) { const x = document.getElementById(id); x.type = x.type === "password" ? "text" : "password"; }
+        function toggleDID() { const v = document.getElementById('did-val'); v.style.display = v.style.display === "block" ? "none" : "block"; }
 
-        function togglePass(id) {
-            let x = document.getElementById(id);
-            x.type = x.type === "password" ? "text" : "password";
-        }
-
-        // 3. Live Referral Validation
+        // Live Sponsor Check
         document.getElementById('r-ref').addEventListener('blur', async function() {
-            let val = this.value.trim();
-            if(!val) return;
-            const msg = document.getElementById('ref-msg');
-            msg.innerText = "Searching Sponsor..."; msg.style.color = "orange";
-            
+            if(!this.value) return;
+            const msg = document.getElementById('ref-status');
+            msg.innerText = "Checking..."; msg.style.color = "orange";
             try {
-                let res = await fetch(`${API_URL}?action=checkReferral&ref=${val}`);
-                let data = await res.json();
-                if(data.status === "VALID") {
-                    msg.innerText = "✓ Sponsor: " + data.name; msg.style.color = "#4ade80";
-                } else {
-                    msg.innerText = "✗ Sponsor Not Found"; msg.style.color = "#f87171";
-                    this.value = "";
-                }
+                const r = await fetch(`${MASTER_API}?action=checkReferral&ref=${this.value}`);
+                const d = await r.json();
+                if(d.status === "VALID") { msg.innerText = "Sponsor: " + d.name; msg.style.color = "#4ade80"; }
+                else { msg.innerText = "Invalid Sponsor"; msg.style.color = "#f87171"; this.value = ""; }
             } catch(e) { msg.innerText = ""; }
         });
 
-        // 4. Registration & Login Logic
-        async function handleLogin() {
-            const num = document.getElementById('l-num').value;
-            const pass = document.getElementById('l-pass').value;
-            if(!num || !pass) return Swal.fire("Error", "Fill all fields", "error");
-
-            Swal.fire({title: 'Authenticating...', didOpen: () => Swal.showLoading()});
-            let res = await fetch(`${API_URL}?action=login&number=${num}&pass=${pass}`);
-            let data = await res.json();
+        async function processLogin() {
+            const n = document.getElementById('l-num').value;
+            const p = document.getElementById('l-pass').value;
+            if(!n || !p) return Swal.fire("Required", "Please fill all details", "error");
+            
+            Swal.fire({title: 'Verifying...', didOpen: () => Swal.showLoading()});
+            const res = await fetch(`${MASTER_API}?action=login&number=${n}&pass=${p}`);
+            const data = await res.json();
             if(data.status === "SUCCESS") {
                 localStorage.setItem('power_star_user', JSON.stringify(data.data));
                 window.location.href = "dashboard.html";
-            } else {
-                Swal.fire("Failed", "Wrong Number or Password", "error");
-            }
+            } else { Swal.fire("Denied", "Wrong credentials", "error"); }
         }
 
-        async function handleRegister() {
-            const name = document.getElementById('r-name').value;
+        async function processRegister() {
+            const n = document.getElementById('r-name').value;
             const num = document.getElementById('r-num').value;
             const pass = document.getElementById('r-pass').value;
             const ref = document.getElementById('r-ref').value || "DIRECT";
-            const chk = document.getElementById('terms').checked;
 
-            if(!name || !num || !pass) return Swal.fire("Error", "Fields missing", "error");
-            if(!chk) return Swal.fire("Notice", "Accept Terms First", "warning");
+            if(!n || !num || !pass) return Swal.fire("Fields Missing", "All fields are mandatory", "warning");
 
-            Swal.fire({title: 'Creating Account...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
-
-            let payload = {
-                page: "AUTH", name, number: num, password: pass, refer_by: ref,
-                user_id: "PSSN" + Math.floor(10000 + Math.random() * 90000),
-                balance: (ref !== "DIRECT" ? 50 : 0), device_id: MY_ID
+            Swal.fire({title: 'Registering...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+            
+            const payload = {
+                page: "AUTH", name: n, number: num, password: pass, refer_by: ref,
+                user_id: "PS" + Math.floor(1000 + Math.random() * 9000),
+                balance: 0, device_id: MY_DEVICE
             };
 
-            await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-            Swal.fire("Success", "Account Created!", "success").then(() => location.reload());
+            await fetch(MASTER_API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+            Swal.fire("Success", "Welcome to Power Star!", "success").then(() => location.reload());
         }
     </script>
 </body>
