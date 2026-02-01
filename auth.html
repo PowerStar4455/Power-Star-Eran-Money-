@@ -205,386 +205,161 @@
     </div>
 
     <script>
-// Configuration constants
-const CONFIG = {
-  SHEET_NAME: "Power_Star_Users",
-  SECURITY_KEY: "POWER_STAR_786_SECURE",
-  TIMEZONE: "Asia/Karachi",
-  DATE_FORMAT: "yyyy-MM-dd HH:mm:ss",
-  DEFAULT_BALANCE: 0,
-  DEFAULT_STATUS: "active"
-};
+    // ==========================================
+// FULL PROFESSIONAL LOGIC - NO SHORTCUTS
+// ==========================================
+const API = "https://script.google.com/macros/s/AKfycbxG5IHg_SLzmygNLPpBTzSAX07Ydb2Ixqyg0-YOKReiBbSVfkggVfCoCPWaCBzromFPSA/exec";
+const KEY = "POWER_STAR_786_SECURE";
 
-// Column indices for better maintainability
-const COLUMNS = {
-  DATE: 0,
-  NUMBER: 1,
-  NAME: 2,
-  PASSWORD: 3,
-  BALANCE: 4,
-  USER_ID: 5,
-  REFER_BY: 6,
-  STATUS: 7,
-  DEVICE_ID: 8
-};
+// 1. Device Security Logic (Full)
+const current_device_id = btoa(navigator.userAgent + screen.width).substring(0, 20);
 
-/**
- * GET request handler - Retrieve all users
- * @param {Object} e - Event parameter
- * @returns {TextOutput} JSON response with user data
- */
-function doGet(e) {
-  try {
-    const sheet = getSheet();
-    const data = sheet.getDataRange().getValues();
-    const users = [];
-    
-    // Skip header row and process data
-    for (let i = 1; i < data.length; i++) {
-      users.push({
-        date: data[i][COLUMNS.DATE],
-        number: data[i][COLUMNS.NUMBER],
-        name: data[i][COLUMNS.NAME],
-        // Never return password in GET requests
-        balance: data[i][COLUMNS.BALANCE],
-        user_id: data[i][COLUMNS.USER_ID],
-        refer_by: data[i][COLUMNS.REFER_BY],
-        status: data[i][COLUMNS.STATUS],
-        device_id: data[i][COLUMNS.DEVICE_ID] ? "registered" : "not_registered"
-      });
-    }
-    
-    return createJsonResponse({ success: true, data: users });
-    
-  } catch (error) {
-    Logger.log('Error in doGet: ' + error.toString());
-    return createJsonResponse({ 
-      success: false, 
-      message: "Failed to retrieve data",
-      error: error.toString() 
-    });
-  }
-}
+// 2. REGISTER FUNCTION (Full Logic: Validation + PSSN + Referral + Device ID)
+async function doRegister() {
+    // Input Fields
+    const nameInput = document.getElementById('r-name');
+    const numInput = document.getElementById('r-num');
+    const passInput = document.getElementById('r-pass');
+    const refInput = document.getElementById('r-ref');
+    const termsChk = document.getElementById('terms-chk');
+    const btn = document.getElementById('reg-btn');
 
-/**
- * POST request handler - Register new user
- * @param {Object} e - Event parameter with POST data
- * @returns {TextOutput} JSON response
- */
-function doPost(e) {
-  try {
-    // Parse request data
-    const data = JSON.parse(e.postData.contents);
-    
-    // Security validation
-    if (!validateSecurityKey(data.key)) {
-      return createJsonResponse({ 
-        success: false, 
-        message: "Unauthorized access" 
-      }, 401);
-    }
-    
-    // Input validation
-    const validationResult = validateUserInput(data);
-    if (!validationResult.valid) {
-      return createJsonResponse({ 
-        success: false, 
-        message: validationResult.message 
-      }, 400);
-    }
-    
-    const sheet = getSheet();
-    
-    // Check for duplicate phone number
-    if (isPhoneNumberExists(sheet, data.number)) {
-      return createJsonResponse({ 
-        success: false, 
-        message: "Phone number already registered" 
-      }, 409);
-    }
-    
-    // Check for duplicate user_id
-    if (isUserIdExists(sheet, data.user_id)) {
-      return createJsonResponse({ 
-        success: false, 
-        message: "User ID already exists" 
-      }, 409);
-    }
-    
-    // One device per account policy
-    if (data.device_id && isDeviceIdExists(sheet, data.device_id)) {
-      return createJsonResponse({ 
-        success: false, 
-        message: "This device is already registered with another account" 
-      }, 409);
-    }
-    
-    // Hash password before storing
-    const hashedPassword = hashPassword(data.password);
-    
-    // Get current timestamp
-    const currentDate = getCurrentTimestamp();
-    
-    // Prepare user data
-    const newUser = [
-      currentDate,                          // A: date
-      sanitizeInput(data.number),           // B: number
-      sanitizeInput(data.name),             // C: name
-      hashedPassword,                       // D: password (hashed)
-      data.balance || CONFIG.DEFAULT_BALANCE, // E: balance
-      sanitizeInput(data.user_id),          // F: user_id
-      sanitizeInput(data.referral) || "",   // G: refer_by
-      data.status || CONFIG.DEFAULT_STATUS, // H: status
-      sanitizeInput(data.device_id) || ""   // I: device_id
-    ];
-    
-    // Add new user to sheet
-    sheet.appendRow(newUser);
-    
-    Logger.log('New user registered: ' + data.user_id);
-    
-    return createJsonResponse({ 
-      success: true, 
-      message: "User registered successfully",
-      user_id: data.user_id
-    });
-    
-  } catch (error) {
-    Logger.log('Error in doPost: ' + error.toString());
-    return createJsonResponse({ 
-      success: false, 
-      message: "Registration failed",
-      error: error.toString() 
-    }, 500);
-  }
-}
+    const name = nameInput.value.trim();
+    const num = numInput.value.trim();
+    const pass = passInput.value.trim();
+    const ref = refInput.value.trim().toUpperCase();
 
-/**
- * Login verification function
- * @param {Object} e - Event parameter with login data
- * @returns {TextOutput} JSON response
- */
-function doLogin(e) {
-  try {
-    const data = JSON.parse(e.postData.contents);
-    
-    // Security validation
-    if (!validateSecurityKey(data.key)) {
-      return createJsonResponse({ 
-        success: false, 
-        message: "Unauthorized access" 
-      }, 401);
+    // --- FULL VALIDATION LOGIC ---
+    if(!name || !num || !pass) {
+        return Swal.fire("Incomplete", "Please fill all fields!", "warning");
     }
-    
-    const sheet = getSheet();
-    const allData = sheet.getDataRange().getValues();
-    
-    // Find user by phone number
-    for (let i = 1; i < allData.length; i++) {
-      if (allData[i][COLUMNS.NUMBER] === data.number) {
-        const storedHashedPassword = allData[i][COLUMNS.PASSWORD];
-        
-        // Verify password
-        if (verifyPassword(data.password, storedHashedPassword)) {
-          
-          // Check device_id for one device policy
-          const storedDeviceId = allData[i][COLUMNS.DEVICE_ID];
-          
-          if (storedDeviceId && storedDeviceId !== data.device_id) {
-            return createJsonResponse({ 
-              success: false, 
-              message: "Account is registered on another device" 
-            }, 403);
-          }
-          
-          // Update device_id if not set
-          if (!storedDeviceId && data.device_id) {
-            sheet.getRange(i + 1, COLUMNS.DEVICE_ID + 1).setValue(data.device_id);
-          }
-          
-          return createJsonResponse({ 
-            success: true, 
-            message: "Login successful",
-            user: {
-              name: allData[i][COLUMNS.NAME],
-              user_id: allData[i][COLUMNS.USER_ID],
-              balance: allData[i][COLUMNS.BALANCE],
-              status: allData[i][COLUMNS.STATUS]
+    if(name.length < 3) {
+        return Swal.fire("Invalid Name", "Name is too short!", "error");
+    }
+    if(!/^3\d{9}$/.test(num)) {
+        return Swal.fire("Invalid Number", "Format: 3xxxxxxxxx (10 digits)", "error");
+    }
+    if(pass.length < 6) {
+        return Swal.fire("Weak Password", "Minimum 6 characters!", "error");
+    }
+    if(termsChk && !termsChk.checked) {
+        return Swal.fire("Terms", "Please accept our terms!", "info");
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+    try {
+        // Fetch all users for duplicate & PSSN check
+        const res = await fetch(API);
+        const allUsers = await res.json();
+
+        // Check Duplicate Number
+        if(allUsers.some(u => String(u.number) === num)) {
+            btn.disabled = false;
+            btn.innerHTML = 'Register Now';
+            return Swal.fire("Error", "Number already registered!", "error");
+        }
+
+        // --- PSSN ID GENERATION LOGIC ---
+        const nextNumber = allUsers.length + 1;
+        const userID = "PSSN" + String(nextNumber).padStart(4, '0');
+
+        // --- REFERRAL BONUS LOGIC (Rs. 50) ---
+        let initialBalance = 0;
+        if(ref) {
+            const referrer = allUsers.find(u => u.user_id === ref);
+            if(referrer) {
+                initialBalance = 50; 
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = 'Register Now';
+                return Swal.fire("Invalid Ref", "Referral code not found!", "error");
             }
-          });
+        }
+
+        // --- FULL DATA PAYLOAD ---
+        const payload = {
+            key: KEY,
+            name: name,
+            number: num,
+            password: pass, // Simple Password as requested
+            balance: initialBalance,
+            user_id: userID,
+            referral: ref || "NONE",
+            status: "active",
+            device_id: current_device_id
+        };
+
+        // Send to Google Sheet
+        await fetch(API, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
+
+        await Swal.fire({
+            icon: 'success',
+            title: 'Registration Successful!',
+            html: `Your ID: <b>${userID}</b><br>Bonus Received: Rs. ${initialBalance}`,
+            confirmButtonText: 'Login Now'
+        });
+        
+        location.reload();
+
+    } catch(e) {
+        btn.disabled = false;
+        btn.innerHTML = 'Register Now';
+        Swal.fire("Server Error", "Could not connect to database!", "error");
+    }
+}
+
+// 3. LOGIN FUNCTION (Full Logic: Security + Device Match)
+async function doLogin() {
+    const num = document.getElementById('l-num').value.trim();
+    const pass = document.getElementById('l-pass').value.trim();
+    const btn = document.getElementById('login-btn');
+
+    if (!num || !pass) return Swal.fire("Warning", "Enter details!", "warning");
+
+    btn.disabled = true;
+    btn.innerHTML = 'Authenticating...';
+
+    try {
+        const res = await fetch(API);
+        const allUsers = await res.json();
+        
+        // Find User with Logic
+        const user = allUsers.find(u => String(u.number) === num && String(u.password) === pass);
+
+        if (user) {
+            // --- ONE DEVICE POLICY CHECK ---
+            if (user.device_id && user.device_id !== "" && user.device_id !== current_device_id) {
+                btn.disabled = false;
+                btn.innerHTML = 'Login';
+                return Swal.fire("Security Violation", "This account is locked to another device!", "error");
+            }
+
+            // Save session and redirect
+            localStorage.setItem("user", JSON.stringify(user));
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: 'Welcome back, ' + user.user_id,
+                timer: 1500,
+                showConfirmButton: false
+            });
+            setTimeout(() => { window.location.href = "dashboard.html"; }, 1500);
         } else {
-          return createJsonResponse({ 
-            success: false, 
-            message: "Invalid password" 
-          }, 401);
+            btn.disabled = false;
+            btn.innerHTML = 'Login';
+            Swal.fire("Login Failed", "Incorrect Number or Password!", "error");
         }
-      }
+    } catch(e) {
+        btn.disabled = false;
+        btn.innerHTML = 'Login';
+        Swal.fire("Error", "Network problem!", "error");
     }
-    
-    return createJsonResponse({ 
-      success: false, 
-      message: "User not found" 
-    }, 404);
-    
-  } catch (error) {
-    Logger.log('Error in doLogin: ' + error.toString());
-    return createJsonResponse({ 
-      success: false, 
-      message: "Login failed",
-      error: error.toString() 
-    }, 500);
-  }
-}
-
-// ============== Helper Functions ==============
-
-/**
- * Get the spreadsheet sheet
- */
-function getSheet() {
-  return SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.SHEET_NAME);
-}
-
-/**
- * Create JSON response
- */
-function createJsonResponse(data, statusCode = 200) {
-  const output = ContentService.createTextOutput(JSON.stringify(data))
-    .setMimeType(ContentService.MimeType.JSON);
-  
-  if (statusCode !== 200) {
-    // Note: Apps Script doesn't support HTTP status codes, but we log them
-    Logger.log('Response status: ' + statusCode);
-  }
-  
-  return output;
-}
-
-/**
- * Validate security key
- */
-function validateSecurityKey(key) {
-  return key === CONFIG.SECURITY_KEY;
-}
-
-/**
- * Get current timestamp in Pakistan timezone
- */
-function getCurrentTimestamp() {
-  return Utilities.formatDate(
-    new Date(), 
-    CONFIG.TIMEZONE, 
-    CONFIG.DATE_FORMAT
-  );
-}
-
-/**
- * Validate user input
- */
-function validateUserInput(data) {
-  if (!data.number || data.number.trim() === "") {
-    return { valid: false, message: "Phone number is required" };
-  }
-  
-  if (!data.name || data.name.trim() === "") {
-    return { valid: false, message: "Name is required" };
-  }
-  
-  if (!data.password || data.password.length < 6) {
-    return { valid: false, message: "Password must be at least 6 characters" };
-  }
-  
-  if (!data.user_id || data.user_id.trim() === "") {
-    return { valid: false, message: "User ID is required" };
-  }
-  
-  if (!data.device_id || data.device_id.trim() === "") {
-    return { valid: false, message: "Device ID is required" };
-  }
-  
-  return { valid: true };
-}
-
-/**
- * Check if phone number already exists
- */
-function isPhoneNumberExists(sheet, phoneNumber) {
-  const data = sheet.getDataRange().getValues();
-  for (let i = 1; i < data.length; i++) {
-    if (data[i][COLUMNS.NUMBER] === phoneNumber) {
-      return true;
-    }
-  }
-  return false;
-}
-
-/**
- * Check if user_id already exists
- */
-function isUserIdExists(sheet, userId) {
-  const data = sheet.getDataRange().getValues();
-  for (let i = 1; i < data.length; i++) {
-    if (data[i][COLUMNS.USER_ID] === userId) {
-      return true;
-    }
-  }
-  return false;
-}
-
-/**
- * Check if device_id already exists
- */
-function isDeviceIdExists(sheet, deviceId) {
-  const data = sheet.getDataRange().getValues();
-  for (let i = 1; i < data.length; i++) {
-    if (data[i][COLUMNS.DEVICE_ID] === deviceId && data[i][COLUMNS.DEVICE_ID] !== "") {
-      return true;
-    }
-  }
-  return false;
-}
-
-/**
- * Hash password using SHA-256
- */
-function hashPassword(password) {
-  const rawHash = Utilities.computeDigest(
-    Utilities.DigestAlgorithm.SHA_256,
-    password,
-    Utilities.Charset.UTF_8
-  );
-  
-  // Convert to hex string
-  let hashString = '';
-  for (let i = 0; i < rawHash.length; i++) {
-    const byte = rawHash[i];
-    if (byte < 0) {
-      hashString += ((byte + 256).toString(16)).padStart(2, '0');
-    } else {
-      hashString += (byte.toString(16)).padStart(2, '0');
-    }
-  }
-  
-  return hashString;
-}
-
-/**
- * Verify password against hash
- */
-function verifyPassword(plainPassword, hashedPassword) {
-  return hashPassword(plainPassword) === hashedPassword;
-}
-
-/**
- * Sanitize input to prevent injection
- */
-function sanitizeInput(input) {
-  if (typeof input !== 'string') {
-    return input;
-  }
-  return input.trim().replace(/[<>]/g, '');
-        }
-
+       }
     </script>
  </body>
     </html>
